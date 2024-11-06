@@ -10,7 +10,7 @@ public class MainFrame extends JFrame {
 
 	public MainFrame() {
 		setTitle("수박게임: 나만의 스타일");
-		setSize(400, 600); // 창 크기 설정
+		setSize(500, 750); // 창 크기 설정
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null); // 창을 중앙에 배치
 		setResizable(false); // 창 크기 고정
@@ -21,6 +21,9 @@ public class MainFrame extends JFrame {
 		add(new HomeScreen(this), "HomeScreen");
 		add(new GameScreen(this), "GameScreen");
 		add(new ShopScreen(this), "ShopScreen");
+		add(new ShopScreen(this), "ShopScreen");
+		add(new ItemShopScreen(this), "ItemShopScreen");
+		add(new SkinShopScreen(this), "SkinShopScreen");
 
 		cardLayout.show(getContentPane(), "HomeScreen"); // 게임시작 시, 첫 화면을 홈 화면으로 설정
 	}

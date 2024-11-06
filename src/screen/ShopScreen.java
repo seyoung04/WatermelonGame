@@ -1,83 +1,90 @@
 //ShopScreen.java
 package screen;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
+import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 public class ShopScreen extends JPanel {
-	private JLabel coinLabel;
-	private JPanel itemShopPanel;
-	private JPanel skinShopPanel;
+	private JLabel coin; // 현재 코인 개수
+	private BufferedImage backgroundImage;
+	private MainFrame mainFrame;
 
 	public ShopScreen(MainFrame mainFrame) {
-		setLayout(new BorderLayout());
+		this.mainFrame = mainFrame;
+		setLayout(null);
 
-		// 상단: 코인 개수와 이전 버튼 위치 조정
-		JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		coinLabel = new JLabel("Coins: 0");
-		topPanel.add(coinLabel);
+		// 배경 이미지 설정
+		try {
+			backgroundImage = ImageIO.read(new File("src/image/shopscreen.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-		JButton backButton = new JButton("Back");
+		// coin 레이블
+		coin = new JLabel("3000");
+		coin.setBounds(100, 32, 150, 40);
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		add(coin);
+
+		// back 버튼
+		RoundedButton backButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
+		backButton.setBounds(420, 22, 64, 64);
 		backButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				mainFrame.showScreen("HomeScreen");
 			}
 		});
-		topPanel.add(backButton);
-		add(topPanel, BorderLayout.NORTH);
+		add(backButton);
 
-		// 아이템 상점 및 스킨 상점 레이아웃 조정
-		itemShopPanel = new JPanel(new GridLayout(2, 1, 10, 10));
-		itemShopPanel.setPreferredSize(new Dimension(480, 100)); // 아이템 상점 패널 크기 조정
-		JLabel bombItem = new JLabel("Bomb - Price: 10 coins");
-		itemShopPanel.add(bombItem);
-		JButton bombBuyButton = new JButton("Buy Bomb");
-		bombBuyButton.addActionListener(e -> showInsufficientCoinsMessage());
-		itemShopPanel.add(bombBuyButton);
+		// item 버튼
+		RoundedButton itemButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 80);
+		itemButton.setBounds(60, 190, 365, 200);
+		itemButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.showScreen("ItemShopScreen");
+			}
+		});
+		add(itemButton);
 
-		JLabel passItem = new JLabel("Pass - Price: 15 coins");
-		itemShopPanel.add(passItem);
-		JButton passBuyButton = new JButton("Buy Pass");
-		passBuyButton.addActionListener(e -> showInsufficientCoinsMessage());
-		itemShopPanel.add(passBuyButton);
+		// skin 버튼
+		RoundedButton skinButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 80);
+		skinButton.setBounds(60, 442, 365, 200);
+		skinButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.showScreen("SkinShopScreen");
+			}
+		});
+		add(skinButton);
+	}
 
-		skinShopPanel = new JPanel();
-		skinShopPanel.setLayout(new BoxLayout(skinShopPanel, BoxLayout.Y_AXIS));
-		JScrollPane scrollPane = new JScrollPane(skinShopPanel);
-
-		for (int i = 0; i < 5; i++) {
-			JPanel skinPanel = new JPanel();
-			skinPanel.setLayout(new FlowLayout());
-			JLabel skinLabel = new JLabel("Skin " + (i + 1));
-			JButton buyButton = new JButton("Buy");
-			buyButton.addActionListener(e -> showInsufficientCoinsMessage());
-
-			skinPanel.add(skinLabel);
-			skinPanel.add(buyButton);
-			skinShopPanel.add(skinPanel);
+	@Override
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		if (backgroundImage != null) {
+			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 		}
-
-		add(itemShopPanel, BorderLayout.CENTER);
-		add(scrollPane, BorderLayout.SOUTH);
 	}
 
 	private void showInsufficientCoinsMessage() {
 		JOptionPane.showMessageDialog(this, "Not enough coins!", "Warning", JOptionPane.WARNING_MESSAGE);
+
 	}
 
 	public void updateCoins(int coins) {
-		coinLabel.setText("Coins: " + coins);
+		coin.setText("" + coins);
 	}
 }

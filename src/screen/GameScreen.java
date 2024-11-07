@@ -26,6 +26,7 @@ public class GameScreen extends JPanel {
 	private JLabel highScore;
 	private JLabel nextFruitLabel; // 다음에 나올 과일
 	private BufferedImage backgroundImage; // 배경 이미지
+	private JLabel coin; // 현재 코인 개수
 
 	public GameScreen(MainFrame mainFrame) {
 		setLayout(null);
@@ -42,7 +43,7 @@ public class GameScreen extends JPanel {
 		});
 		timer.start();
 
-		// 배경 이미지 로드
+		// 배경 이미지 설정
 		try {
 			backgroundImage = ImageIO.read(new File("src/image/gamescreen.png")); // 게임 화면 배경 이미지
 		} catch (IOException e) {
@@ -51,19 +52,25 @@ public class GameScreen extends JPanel {
 
 		// current score 레이블
 		currentScore = new JLabel("5000");
-		currentScore.setBounds(170, 38, 100, 20);
+		currentScore.setBounds(210, 38, 100, 50);
 		currentScore.setFont(new Font("Comic Sans MS", Font.BOLD, 25)); // 폰트 설정
 		add(currentScore);
 
 		// high score 레이블
 		highScore = new JLabel("3000");
-		highScore.setBounds(185, 90, 100, 20);
-		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 14)); // 폰트 설정
+		highScore.setBounds(220, 115, 100, 40);
+		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 17)); // 폰트 설정
 		add(highScore);
+
+		// coin 레이블
+		coin = new JLabel("3000");
+		coin.setBounds(380, 30, 150, 40);
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 22)); // 폰트 설정
+		add(coin);
 
 		// 다음 과일 표시 위치 조정
 		nextFruitLabel = new JLabel("O");
-		nextFruitLabel.setBounds(355, 140, 200, 20);
+		nextFruitLabel.setBounds(445, 190, 200, 20);
 		nextFruitLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 16)); // 폰트 설정
 		add(nextFruitLabel);
 	}

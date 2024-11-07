@@ -18,8 +18,10 @@ public class Falling {
 	private static final double STABILITY_THRESHOLD = 0.2;
 	private static final double STACKING_THRESHOLD = 2.0;
 	private static final double NATURAL_FORCE = 5;
-	private static final int PANEL_WIDTH = 400;
-	private static final int PANEL_HEIGHT = 600;
+	private static final int WALL_LEFT = 30;
+	private static final int WALL_RIGHT = 415;
+	private static final int WALL_TOP = 0;
+	private static final int WALL_BOTTOM = 695;
 	private static final double ENERGY_LOSS = 0.5;
 
 	public Falling(int startX) {
@@ -60,8 +62,8 @@ public class Falling {
 	}
 
 	private void ensureInBounds() {
-		x = Math.max(0, Math.min(x, PANEL_WIDTH - diameter));
-		y = Math.max(0, Math.min(y, PANEL_HEIGHT - diameter));
+		x = Math.max(WALL_LEFT, Math.min(x, WALL_RIGHT - diameter));
+		y = Math.max(WALL_TOP, Math.min(y, WALL_BOTTOM - diameter));
 	}
 
 	private boolean isStacked(Falling otherF) {
@@ -87,25 +89,29 @@ public class Falling {
 	}
 
 	private void handleWallCollision() {
-		if (y + diameter > PANEL_HEIGHT) {
-			y = PANEL_HEIGHT - diameter;
+		if (y + diameter > WALL_BOTTOM) {
+			y = WALL_BOTTOM - diameter;
 			velocityY = -velocityY * ENERGY_LOSS;
 			velocityX *= FRICTION;
 		}
-		if (x < 0) {
-			x = 0;
-			velocityX = -velocityX * ENERGY_LOSS;
-		} else if (x + diameter > PANEL_WIDTH) {
-			x = PANEL_WIDTH - diameter;
+		// 왼쪽 벽에 충돌
+		if (x < WALL_LEFT) {
+			x = WALL_LEFT;
 			velocityX = -velocityX * ENERGY_LOSS;
 		}
+		// 오른쪽 벽에 충돌
+		else if (x + diameter > WALL_RIGHT) {
+			x = WALL_RIGHT - diameter;
+			velocityX = -velocityX * ENERGY_LOSS;
+		}
+
 	}
 
 	private void checkStability(List<Falling> fruits) {
 		boolean isStable = false;
 		supportingFruit = null;
 
-		if (y + diameter / 2 >= PANEL_HEIGHT) {
+		if (y + diameter / 2 >= WALL_TOP) {
 			isStable = true;
 		} else {
 			for (Falling otherF : fruits) {

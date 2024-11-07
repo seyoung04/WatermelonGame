@@ -36,7 +36,7 @@ public class HomeScreen extends JPanel {
 		setLayout(null);
 		setBackground(new Color(222, 184, 135)); // 기본 배경 색상 설정 (이미지가 로드되지 않을 경우)
 
-		// 배경 이미지 로드
+		// 배경 이미지 설정
 		try {
 			backgroundImage = ImageIO.read(new File("src/image/homescreen.png"));
 		} catch (IOException e) {
@@ -45,19 +45,19 @@ public class HomeScreen extends JPanel {
 
 		// high score 레이블
 		highScore = new JLabel("5000");
-		highScore.setBounds(120, 32, 150, 20);
-		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 14)); // 폰트 설정
+		highScore.setBounds(110, 32, 150, 40);
+		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
 		add(highScore);
 
 		// coin 레이블
 		coin = new JLabel("3000");
-		coin.setBounds(270, 31, 150, 20);
-		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 16)); // 폰트 설정
+		coin.setBounds(340, 32, 150, 40);
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
 		add(coin);
 
 		// Start 버튼
 		RoundedButton startButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
-		startButton.setBounds(110, 295, 177, 67);
+		startButton.setBounds(140, 373, 215, 75);
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -68,7 +68,7 @@ public class HomeScreen extends JPanel {
 
 		// Shop 버튼
 		RoundedButton shopButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
-		shopButton.setBounds(125, 365, 149, 50);
+		shopButton.setBounds(158, 465, 180, 55);
 		shopButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

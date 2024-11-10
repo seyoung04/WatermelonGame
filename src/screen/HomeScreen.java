@@ -9,30 +9,24 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import watermelonGame.Falling;
+
 public class HomeScreen extends JPanel {
 	private JLabel highScore; // 개인 최고 기록
 	private JLabel coin; // 현재 코인 개수
 	private BufferedImage backgroundImage; // 배경 이미지
-	private MainFrame mainFrame; // MainFrame 인스턴스 추가
+
+	List<Falling> fruits;
 
 	// 버튼의 위치 및 크기
-	private int startButtonX = 110; // 스타트 버튼의 X좌표
-	private int startButtonY = 295; // 스타트 버튼의 Y좌표
-	private int startButtonWidth = 177; // 스타트 버튼의 너비
-	private int startButtonHeight = 67; // 스타트 버튼의 높이
-	private int shopButtonX = 125; // 상점 버튼의 X좌표
-	private int shopButtonY = 365; // 상점 버튼의 Y좌표
-	private int shopButtonWidth = 149; // 상점 버튼의 너비
-	private int shopButtonHeight = 50; // 상점 버튼의 높이
-	private int arcSize = 40; // 모서리 둥글기
 
 	public HomeScreen(MainFrame mainFrame) {
-		this.mainFrame = mainFrame; // MainFrame 인스턴스를 필드에 저장
 		setLayout(null);
 		setBackground(new Color(222, 184, 135)); // 기본 배경 색상 설정 (이미지가 로드되지 않을 경우)
 

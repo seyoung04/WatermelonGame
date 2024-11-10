@@ -1,11 +1,13 @@
 package watermelonGame;
 
 import java.awt.Graphics;
+import java.awt.Image;
 import java.util.List;
 
 public class Falling {
 	double x;
 	double y;
+	private Image fruitImage;
 	double velocityX = 0;
 	double velocityY = 0;
 	int diameter = 100;
@@ -15,22 +17,21 @@ public class Falling {
 
 	private static final double GRAVITY = 0.4;
 	private static final double FRICTION = 0.98;
-	private static final double STABILITY_THRESHOLD = 0.2;
-	private static final double STACKING_THRESHOLD = 2.0;
-	private static final double NATURAL_FORCE = 5;
 	private static final int WALL_LEFT = 30;
 	private static final int WALL_RIGHT = 415;
 	private static final int WALL_TOP = 0;
 	private static final int WALL_BOTTOM = 695;
 	private static final double ENERGY_LOSS = 0.5;
 
-	public Falling(int startX) {
-		this.x = startX;
-		this.y = 0;
-		this.type = new Fruit().getRandomFruitType();
+	public Falling(int x, Image fruitImage, Fruit.FruitList type) {
+		this.x = x;
+		this.y = 200;
+		this.fruitImage = fruitImage;
+		this.type = type;
 		this.diameter = type.getSize();
 	}
 
+	// 상태 업데이트
 	public void update(List<Falling> fruits) {
 		if (isMarkedForDeletion) {
 			return;
@@ -41,54 +42,27 @@ public class Falling {
 
 		velocityY += GRAVITY;
 
-		for (int i = 0; i < 3; i++) {
-			x += velocityX / 3;
-			y += velocityY / 3;
+		for (int i = 0; i < 5; i++) {
+			x += velocityX / 5;
+			y += velocityY / 5;
 			Collision collision = new Collision();
 			collision.handleCollisions(fruits, this, prevX, prevY);
+			handleWallCollision();
+			ensureInBounds();
 		}
-
-		handleWallCollision();
-		checkStability(fruits);
 
 		velocityX *= FRICTION;
-
-		if (isStable() && supportingFruit != null) {
-			naturalRoll();
-		}
-
-		preventPerfectStack(fruits);
-		ensureInBounds();
 	}
 
+	// 과일이 벽을 넘지 않도록
 	private void ensureInBounds() {
 		x = Math.max(WALL_LEFT, Math.min(x, WALL_RIGHT - diameter));
 		y = Math.max(WALL_TOP, Math.min(y, WALL_BOTTOM - diameter));
 	}
 
-	private boolean isStacked(Falling otherF) {
-		double verticalDist = (y + diameter / 2) - (otherF.y + otherF.diameter / 2);
-		return verticalDist > 0 && verticalDist < STACKING_THRESHOLD;
-	}
-
-	private void naturalRoll() {
-		if (supportingFruit != null) {
-			double dx = x - supportingFruit.x;
-			velocityX += Math.signum(dx) * NATURAL_FORCE * (Math.abs(dx) / (diameter * 0.5));
-		}
-	}
-
-	private void preventPerfectStack(List<Falling> fruits) {
-		for (Falling otherF : fruits) {
-			if (otherF != this && !otherF.isMarkedForDeletion && Math.abs(x - otherF.x) < diameter * 0.1) {
-				if (isStacked(otherF)) {
-					velocityX += (x > otherF.x ? 1 : -1) * NATURAL_FORCE;
-				}
-			}
-		}
-	}
-
+	// 벽과 충돌 관리
 	private void handleWallCollision() {
+		// 바닥과 충돌
 		if (y + diameter > WALL_BOTTOM) {
 			y = WALL_BOTTOM - diameter;
 			velocityY = -velocityY * ENERGY_LOSS;
@@ -107,34 +81,13 @@ public class Falling {
 
 	}
 
-	private void checkStability(List<Falling> fruits) {
-		boolean isStable = false;
-		supportingFruit = null;
-
-		if (y + diameter / 2 >= WALL_TOP) {
-			isStable = true;
-		} else {
-			for (Falling otherF : fruits) {
-				Collision collision = new Collision();
-				if (otherF != this && !otherF.isMarkedForDeletion && collision.isColliding(this, otherF)) {
-					if (isStacked(otherF)) {
-						isStable = Math.abs(velocityX) < STABILITY_THRESHOLD
-								&& Math.abs(velocityY) < STABILITY_THRESHOLD;
-						supportingFruit = otherF;
-						if (isStable) {
-							velocityY *= 0.5;
-						}
-						break;
-					}
-				}
-			}
-		}
-	}
-
+	// 과일 이미지 그리기
 	public void draw(Graphics g) {
 		if (!isMarkedForDeletion) {
-			g.setColor(type.getColor());
-			g.fillOval((int) x, (int) y, diameter, diameter);
+			if (fruitImage != null) {
+				int fruitSize = type.getSize();
+				g.drawImage(fruitImage, (int) x, (int) y, fruitSize, fruitSize, null);
+			}
 		}
 	}
 
@@ -168,5 +121,13 @@ public class Falling {
 
 	public boolean isMarkedForDeletion() {
 		return isMarkedForDeletion;
+	}
+
+	public void setFruitImage(Image fruitImage) {
+		this.fruitImage = fruitImage;
+	}
+
+	public Image getFruitImage() {
+		return this.fruitImage;
 	}
 }

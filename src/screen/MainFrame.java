@@ -21,7 +21,6 @@ public class MainFrame extends JFrame {
 		add(new HomeScreen(this), "HomeScreen");
 		add(new GameScreen(this), "GameScreen");
 		add(new ShopScreen(this), "ShopScreen");
-		add(new ShopScreen(this), "ShopScreen");
 		add(new ItemShopScreen(this), "ItemShopScreen");
 		add(new SkinShopScreen(this), "SkinShopScreen");
 

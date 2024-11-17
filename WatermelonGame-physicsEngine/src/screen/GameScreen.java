@@ -17,6 +17,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -24,138 +25,196 @@ import watermelonGame.Falling;
 import watermelonGame.Fruit;
 
 public class GameScreen extends JPanel {
-    private List<Falling> fruits = new ArrayList<>();
-    private long lastCreationTime = 0;
-    private JLabel currentScore; // 현재 점수
-    private JLabel highScore;
-    private JLabel nextFruitLabel; // 다음에 나올 과일
-    private BufferedImage backgroundImage; // 배경 이미지
-    private JLabel coin; // 현재 코인 개수
-    private Point mousePosition = new Point(0, 200); // 마우스 위치 저장
-    private Fruit currentPreviewFruit = new Fruit(); // 이번 클릭에서 생성될 과일
-    private Fruit nextFruit = new Fruit(); // 다음 과일
+	private List<Falling> fruits = new ArrayList<>();
+	private long lastCreationTime = 0;
+	private JLabel currentScore;
+	private JLabel highScore;
+	private JLabel nextFruitLabel;
+	private BufferedImage backgroundImage;
+	private JLabel coin;
+	private Point mousePosition = new Point(0, 200);
+	private Fruit currentPreviewFruit = new Fruit();
+	private Fruit nextFruit = new Fruit();
+	private MainFrame mainFrame;
+	private boolean isGameOver = false;
+	private static final int GAME_OVER_HEIGHT = 250; // 게임 오버가 되는 높이
+	private static final int GAME_OVER_DURATION = 3000; // 2초(2000밀리초)
+	private long gameOverStartTime = 0; // 게임 오버 조건이 시작된 시간
 
-    public GameScreen(MainFrame mainFrame) {
-        setLayout(null);
-        setBackground(new Color(222, 184, 135)); // 기본 배경색 설정
+	public GameScreen(MainFrame mainFrame) {
+		this.mainFrame = mainFrame;
+		setLayout(null);
+		setBackground(new Color(222, 184, 135));
 
-        // 마우스 클릭 시 새로운 과일 생성
-        addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                long currentTime = System.currentTimeMillis();
-                if (currentTime - lastCreationTime > 500) {
-                    lastCreationTime = currentTime;
-                    fruits.add(new Falling(e.getX(), currentPreviewFruit.getType().getImage(),
-                            currentPreviewFruit.getType()));
+		addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (!isGameOver) {
+					long currentTime = System.currentTimeMillis();
+					if (currentTime - lastCreationTime > 1000) {
+						lastCreationTime = currentTime;
+						fruits.add(new Falling(e.getX(), currentPreviewFruit.getType().getImage(),
+								currentPreviewFruit.getType()));
 
-                    // 다음 과일을 현재 미리보기로 설정
-                    currentPreviewFruit = nextFruit;
-                    // 새로운 다음 과일 생성
-                    nextFruit = new Fruit();
-                    nextFruitLabel();
-                    repaint();
-                }
-            }
-        });
+						currentPreviewFruit = nextFruit;
+						nextFruit = new Fruit();
+						nextFruitLabel();
+						repaint();
+					}
+				}
+			}
+		});
 
-        // 마우스 이동 시 미리보기 위치 업데이트
-        addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                mousePosition = e.getPoint();
-                repaint();
-            }
-        });
+		addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				mousePosition = e.getPoint();
+				repaint();
+			}
+		});
 
-        // 주기적으로 업데이트 및 리페인트
-        Timer timer = new Timer(20, e -> {
-            update();
-            repaint();
-        });
-        timer.start();
+		// 주기적으로 업데이트 및 리페인트
+		Timer gameTimer = new Timer(20, e -> {
+			if (!isGameOver) {
+				update();
+				checkGameOverCondition();
+				repaint();
+			}
+		});
+		gameTimer.start();
 
-        // 배경 이미지 설정
-        try {
-            backgroundImage = ImageIO.read(new File("src/image/gamescreen.png")); // 게임 화면 배경 이미지
-        } catch (IOException e) {
-            e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
-        }
+		// 나머지 초기화 코드...
+		initializeComponents();
+	}
 
-        // current score 레이블
-        currentScore = new JLabel("5000");
-        currentScore.setBounds(210, 38, 100, 50);
-        currentScore.setFont(new Font("Comic Sans MS", Font.BOLD, 25)); // 폰트 설정
-        add(currentScore);
+	private void initializeComponents() {
+		try {
+			backgroundImage = ImageIO.read(new File("src/image/gamescreen.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-        // high score 레이블
-        highScore = new JLabel("3000");
-        highScore.setBounds(220, 115, 100, 40);
-        highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 17)); // 폰트 설정
-        add(highScore);
+		currentScore = new JLabel("5000");
+		currentScore.setBounds(210, 38, 100, 50);
+		currentScore.setFont(new Font("Comic Sans MS", Font.BOLD, 25));
+		add(currentScore);
 
-        // coin 레이블
-        coin = new JLabel("3000");
-        coin.setBounds(380, 30, 150, 40);
-        coin.setFont(new Font("Comic Sans MS", Font.BOLD, 22)); // 폰트 설정
-        add(coin);
+		highScore = new JLabel("3000");
+		highScore.setBounds(220, 115, 100, 40);
+		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 17));
+		add(highScore);
 
-        // 다음 과일 표시 위치 조정
-        nextFruitLabel = new JLabel();
-        nextFruitLabel.setBounds(440, 190, 30, 30);
-        add(nextFruitLabel);
-        nextFruitLabel();
-    }
+		coin = new JLabel("3000");
+		coin.setBounds(380, 30, 150, 40);
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 22));
+		add(coin);
 
-    // 다음 과일 레이블에 이미지 업데이트
-    private void nextFruitLabel() {
-        Image nextFruitImage = nextFruit.getType().getImage();
-        if (nextFruitImage != null) {
-            // nextFruitLabel에 이미지를 30x30 크기로 설정
-            Image scaledImage = nextFruitImage.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-            nextFruitLabel.setIcon(new ImageIcon(scaledImage));
-        } else {
-            nextFruitLabel.setIcon(null);
-        }
-    }
+		nextFruitLabel = new JLabel();
+		nextFruitLabel.setBounds(440, 190, 30, 30);
+		add(nextFruitLabel);
+		nextFruitLabel();
+	}
 
-    public void updateScore(int score) {
-        currentScore.setText("" + score);
-    }
+	private void checkGameOverCondition() {
+		boolean isAboveLine = checkGameOver();
+		long currentTime = System.currentTimeMillis();
 
-    public void updateHighScore(int score) {
-        highScore.setText("" + score);
-    }
+		if (isAboveLine) {
+			// 게임 오버 조건이 처음 감지되었을 때
+			if (gameOverStartTime == 0) {
+				gameOverStartTime = currentTime;
+			}
+			// 2초 이상 지속되었는지 확인
+			else if (currentTime - gameOverStartTime >= GAME_OVER_DURATION) {
+				showGameOverDialog();
+				gameOverStartTime = 0;
+			}
+		} else {
+			// 게임 오버 조건이 해제되면 타이머 초기화
+			gameOverStartTime = 0;
+		}
+	}
 
-    private void update() {
-        for (Falling fruit : fruits) {
-            fruit.update(fruits);
-        }
-    }
+	private boolean checkGameOver() {
+		for (Falling fruit : fruits) {
+			if (fruit.getY() <= GAME_OVER_HEIGHT) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+	private void showGameOverDialog() {
+		isGameOver = true;
+		int option = JOptionPane.showConfirmDialog(this, "게임 오버!\n홈으로 돌아가시겠습니까?", "게임 오버", JOptionPane.YES_NO_OPTION,
+				JOptionPane.INFORMATION_MESSAGE);
 
-        // 배경 이미지 그리기
-        if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-            g.setColor(Color.red);
+		if (option == JOptionPane.YES_OPTION) {
+			returnToHome();
+		}
+		resetGame();
+	}
 
-            g.drawLine(50, 250, 400, 250);
-        }
+	private void returnToHome() {
+		resetGame();
+		mainFrame.showScreen("HomeScreen");
+	}
 
-        // 미리보기 과일 그리기
-        if (mousePosition != null && currentPreviewFruit != null) {
-            currentPreviewFruit.drawPreview(g, mousePosition.x, 200);
-        }
+	private void resetGame() {
+		fruits.clear();
+		isGameOver = false;
+		gameOverStartTime = 0; // 게임 오버 타이머 초기화
+		currentPreviewFruit = new Fruit();
+		nextFruit = new Fruit();
+		nextFruitLabel();
+		currentScore.setText("5000");
+		repaint();
+	}
 
-        // 과일들 그리기
-        paintFruits(g);
-    }
+	// 나머지 메서드들은 동일하게 유지...
+	public void updateScore(int score) {
+		currentScore.setText("" + score);
+	}
 
-    protected void paintFruits(Graphics g) {
-        for (Falling fruit : fruits) {
-            fruit.draw(g);
-        }
-    }
+	public void updateHighScore(int score) {
+		highScore.setText("" + score);
+	}
+
+	private void update() {
+		for (Falling fruit : fruits) {
+			fruit.update(fruits);
+		}
+	}
+
+	private void nextFruitLabel() {
+		Image nextFruitImage = nextFruit.getType().getImage();
+		if (nextFruitImage != null) {
+			Image scaledImage = nextFruitImage.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+			nextFruitLabel.setIcon(new ImageIcon(scaledImage));
+		} else {
+			nextFruitLabel.setIcon(null);
+		}
+	}
+
+	@Override
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
+		if (backgroundImage != null) {
+			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+			g.setColor(Color.red);
+			g.drawLine(50, 250, 400, 250);
+		}
+
+		if (!isGameOver && mousePosition != null && currentPreviewFruit != null) {
+			currentPreviewFruit.drawPreview(g, mousePosition.x, 150);
+		}
+
+		paintFruits(g);
+	}
+
+	protected void paintFruits(Graphics g) {
+		for (Falling fruit : fruits) {
+			fruit.draw(g);
+		}
+	}
 }

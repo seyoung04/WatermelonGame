@@ -109,8 +109,8 @@ public class Collision {
 			return;
 		}
 
-		// 두 과일의 종류가 같다면
-		if (fallingInstance.type == otherF.type) {
+		// 두 과일의 종류가 같고, 마지막 종류의 과일이 아닐 때만 합치기
+		if (fallingInstance.type == otherF.type && !isMaxFruit(fallingInstance.type)) {
 			double newX = (fallingInstance.getX() + otherF.getX()) / 2;
 			double newY = (fallingInstance.getY() + otherF.getY()) / 2;
 			// 다음 종류의 과일이 존재하면 두 과일을 합쳐 다음 종류의 과일 생성
@@ -125,6 +125,11 @@ public class Collision {
 				otherF.markForDeletion();
 			}
 		}
+	}
+
+	// 마지막 종류의 과일인지 확인하는 메서드
+	private boolean isMaxFruit(Fruit.FruitList type) {
+		return type.next() == null; // 다음 과일이 없으면 마지막 종류
 	}
 
 	// 겹친 정도 구하기

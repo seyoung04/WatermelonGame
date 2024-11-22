@@ -16,6 +16,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import database.Login;
+
 public class LoginScreen extends JPanel {
 	private MainFrame mainFrame;
 	private JTextField idField;
@@ -55,7 +57,14 @@ public class LoginScreen extends JPanel {
 		loginButton.addActionListener(e -> {
 			String id = idField.getText();
 			String password = new String(passwordField.getPassword());
-			if (id.equals("user") && password.equals("pass")) {
+
+			if (password.isEmpty() || id.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "모든 필드를 입력해주세요.");
+				return;
+			}
+
+			if (Login.login(id, password)) {
+				JOptionPane.showMessageDialog(null, "로그인 성공!");
 				mainFrame.showScreen("HomeScreen");
 			} else {
 				JOptionPane.showMessageDialog(null, "아이디 또는 비밀번호가 일치하지 않습니다.");

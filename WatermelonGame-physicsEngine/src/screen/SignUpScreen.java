@@ -16,6 +16,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import database.Login;
+
 public class SignUpScreen extends JPanel {
 	private MainFrame mainFrame;
 	private JTextField idField;
@@ -57,18 +59,17 @@ public class SignUpScreen extends JPanel {
 		signupButton.addActionListener(e -> {
 			String id = idField.getText();
 			String password = new String(passwordField.getPassword());
-			String passwordCheck = new String(passwordCheckField.getPassword());
 
-			if (id.isEmpty() || password.isEmpty() || passwordCheck.isEmpty()) {
-				JOptionPane.showMessageDialog(null, "모두 입력해주세요.");
+			if (password.isEmpty() || id.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "모든 필드를 입력해주세요.");
 				return;
 			}
 
-			if (!password.equals(passwordCheck)) {
-				JOptionPane.showMessageDialog(null, "비밀번호가 일치하지 않습니다.");
-			} else {
-				JOptionPane.showMessageDialog(null, "회원가입이 완료되었습니다!");
+			if (Login.register(id, password)) {
+				JOptionPane.showMessageDialog(null, "회원가입 성공!");
 				mainFrame.showScreen("LoginScreen");
+			} else {
+				JOptionPane.showMessageDialog(null, "이미 존재하는 아이디입니다.");
 			}
 		});
 

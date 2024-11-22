@@ -114,33 +114,34 @@ public class GameScreen extends JPanel {
 		nextFruitLabel();
 	}
 
+	private boolean isStationary(Falling fruit) {
+		return !fruit.isMoving() || fruit.getVelocityY() == 0;
+	}
+
+	private boolean checkGameOver() {
+		for (Falling fruit : fruits) {
+			// 과일이 정적인 상태이고 게임오버 높이보다 위에 있을 때만 true 반환
+			if (isStationary(fruit) && fruit.getY() <= GAME_OVER_HEIGHT) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void checkGameOverCondition() {
 		boolean isAboveLine = checkGameOver();
 		long currentTime = System.currentTimeMillis();
 
 		if (isAboveLine) {
-			// 게임 오버 조건이 처음 감지되었을 때
 			if (gameOverStartTime == 0) {
 				gameOverStartTime = currentTime;
-			}
-			// 2초 이상 지속되었는지 확인
-			else if (currentTime - gameOverStartTime >= GAME_OVER_DURATION) {
+			} else if (currentTime - gameOverStartTime >= GAME_OVER_DURATION) {
 				showGameOverDialog();
 				gameOverStartTime = 0;
 			}
 		} else {
-			// 게임 오버 조건이 해제되면 타이머 초기화
 			gameOverStartTime = 0;
 		}
-	}
-
-	private boolean checkGameOver() {
-		for (Falling fruit : fruits) {
-			if (fruit.getY() <= GAME_OVER_HEIGHT) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private void showGameOverDialog() {

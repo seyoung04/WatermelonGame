@@ -90,12 +90,20 @@ public class Falling {
 		}
 	}
 
+	public boolean isMoving() {
+		return Math.abs(velocityY) > 1;
+	}
+
 	public int getX() {
 		return (int) x;
 	}
 
 	public int getY() {
 		return (int) y;
+	}
+
+	public double getVelocityY() {
+		return velocityY;
 	}
 
 	public double getCenterX() {
@@ -108,10 +116,6 @@ public class Falling {
 
 	public int getDiameter() {
 		return diameter;
-	}
-
-	public boolean isStable() {
-		return supportingFruit != null; // 누락된 메소드 추가
 	}
 
 	public void markForDeletion() {

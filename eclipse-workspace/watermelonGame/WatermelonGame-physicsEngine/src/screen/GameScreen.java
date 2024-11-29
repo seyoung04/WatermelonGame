@@ -12,6 +12,9 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import database.Database;
+import database.SessionManager;
 import watermelonGame.Falling;
 import watermelonGame.Fruit;
 
@@ -30,35 +33,42 @@ public class GameScreen extends JPanel {
     private int coinCount = 0; // 현재 코인 개수
     private Map<String, Integer> fruitCoinValues; // 과일에 대한 코인 값 저장
     private boolean isGameOver = false;
-	private static final int GAME_OVER_HEIGHT = 250; // 게임 오버가 되는 높이
-	private static final int GAME_OVER_DURATION = 3000; // 2초(2000밀리초)
-	private long gameOverStartTime = 0; // 게임 오버 조건이 시작된 시간
-	private MainFrame mainFrame;
+    private static final int GAME_OVER_HEIGHT = 250; // 게임 오버가 되는 높이
+    private static final int GAME_OVER_DURATION = 3000; // 2초(2000밀리초)
+    private long gameOverStartTime = 0; // 게임 오버 조건이 시작된 시간
+    private MainFrame mainFrame;
+    private int userId;
+
+    private int highScoreValue = 0;
+    private int totalCoins = 0;
 
     public GameScreen(MainFrame mainFrame) {
-    	this.mainFrame = mainFrame;
+        initializeGameScreen();
+
+        this.mainFrame = mainFrame;
+        updateUserId();
+        
         setLayout(null);
         setBackground(new Color(222, 184, 135));
+        currentScore = new JLabel("0");
 
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-            	if (!isGameOver) {
-					long currentTime = System.currentTimeMillis();
-					if (currentTime - lastCreationTime > 1000) {
-						lastCreationTime = currentTime;
-						fruits.add(new Falling(e.getX(), currentPreviewFruit.getType().getImage(),
-	                            currentPreviewFruit.getType(), GameScreen.this));
+                if (!isGameOver) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastCreationTime > 1000) {
+                        lastCreationTime = currentTime;
+                        fruits.add(new Falling(e.getX(), currentPreviewFruit.getType().getImage(),
+                            currentPreviewFruit.getType(), GameScreen.this));
 
-						currentPreviewFruit = nextFruit;
-						nextFruit = new Fruit();
-						nextFruitLabel();
-						repaint();
-					}
+                        currentPreviewFruit = nextFruit;
+                        nextFruit = new Fruit();
+                        nextFruitLabel();
+                        repaint();
+                    }
                 }
             }
         });
-
-
 
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
@@ -80,7 +90,6 @@ public class GameScreen extends JPanel {
             e.printStackTrace();
         }
 
-        currentScore = new JLabel("0");
         currentScore.setBounds(210, 38, 100, 50);
         currentScore.setFont(new Font("Comic Sans MS", Font.BOLD, 25));
         add(currentScore);
@@ -109,6 +118,16 @@ public class GameScreen extends JPanel {
         fruitCoinValues.put("peach", 100);
         fruitCoinValues.put("melon", 130);
         fruitCoinValues.put("watermelon", 170);
+
+    }
+
+    private void updateUserId() {
+        this.userId = SessionManager.getInstance().getUserId();
+    }
+
+    public void refreshUserSession() {
+        updateUserId();
+        initializeGameScreen();
     }
 
     private void nextFruitLabel() {
@@ -121,31 +140,52 @@ public class GameScreen extends JPanel {
         }
     }
 
-    public void updateScore(int additionalScore) {
-        score += additionalScore;
-        currentScore.setText("" + score);
-
-        // 점수의 1/10을 코인으로 반영
-        int newCoins = additionalScore / 10;
-        coinCount += newCoins;
-        coin.setText("" + coinCount);
-    }
-
     public void updateScoreAndCoins(String fruitType) {
-        int pointIncrement = getPointIncrement(fruitType); // 과일 점수 가져오기
-        score += pointIncrement; // 점수 증가
+        // userId 가져오기
+        int currentUserId = SessionManager.getInstance().getUserId();
 
-        // 코인은 점수를 10으로 나눈 값만큼 증가
-        int newCoins = pointIncrement / 10; // 점수의 1/10 계산
-        coinCount += newCoins; // 코인 증가
+        int pointIncrement = getPointIncrement(fruitType);
+        score += pointIncrement;
+        int newCoins = pointIncrement / 10;
+        coinCount += newCoins;
 
         // UI 업데이트
-        coin.setText("" + coinCount); // 코인 라벨 업데이트
-        currentScore.setText("" + score); // 점수 라벨 업데이트
-        repaint();  // 화면 갱신
+        currentScore.setText("" + score);
+        coin.setText("" + coinCount);
+
+        Database.updateUserScoreAndCoins(currentUserId, score, coinCount);
+
+        if (score > highScoreValue) {
+            highScoreValue = score;
+            highScore.setText(String.valueOf(highScoreValue));
+        }
     }
 
+    public void initializeGameScreen() {
+        this.userId = SessionManager.getInstance().getUserId();
+        System.out.println("initializeGameScreen에서 userId: " + userId);
 
+        if (userId != -1) {
+            int[] userData = Database.getUserScoreAndCoins(userId);
+
+            // 데이터베이스에서 가져온 값을 로그로 출력
+            System.out.println("Database에서 가져온 userData: high_score = " + userData[0] + ", game_money = " + userData[1]);
+
+            // 데이터베이스에서 가져온 최고 점수와 코인을 화면에 표시
+            highScoreValue = userData[0];
+            coinCount = userData[1];
+
+            // UI 업데이트
+            highScore.setText(String.valueOf(highScoreValue));
+            coin.setText("" + coinCount);
+
+            // 새 게임 시작 시 점수는 0으로 초기화
+            score = 0;
+            currentScore.setText("" + score);
+        } else {
+            System.err.println("유효하지 않은 userId: " + userId);
+        }
+    }
 
     public int getPointIncrement(String fruitType) {
         return fruitCoinValues.getOrDefault(fruitType, 0);
@@ -156,24 +196,39 @@ public class GameScreen extends JPanel {
             fruit.update(fruits);
 
             if (fruit.isMerged() && !fruit.isMarkedForDeletion()) {
-                String fruitType = fruit.getType().toString().toLowerCase(); 
+                String fruitType = fruit.getType().toString().toLowerCase();
                 updateScoreAndCoins(fruitType);
             }
         }
     }
-    private boolean isStationary(Falling fruit) {
-		return !fruit.isMoving() || fruit.getVelocityY() == 0;
-	}
+    public void updateData(int userId) {
+        // Database 객체 생성 불필요
+        int[] userData = Database.getUserScoreAndCoins(userId);
 
-	private boolean checkGameOver() {
-		for (Falling fruit : fruits) {
-			// 과일이 정적인 상태이고 게임오버 높이보다 위에 있을 때만 true 반환
-			if (isStationary(fruit) && fruit.getY() <= GAME_OVER_HEIGHT) {
-				return true;
-			}
-		}
-		return false;
-	}
+        // 데이터 설정
+        int highScoreValue = userData[0];
+        int coinCount = userData[1];
+
+        // UI 업데이트
+        highScore.setText(String.valueOf(highScoreValue));
+        coin.setText(String.valueOf(coinCount));
+        currentScore.setText("0"); // 게임 시작 시 현재 점수 초기화
+    }
+
+    private boolean isStationary(Falling fruit) {
+        return !fruit.isMoving() || fruit.getVelocityY() == 0;
+    }
+
+    private boolean checkGameOver() {
+        for (Falling fruit : fruits) {
+            // 과일이 정적인 상태이고 게임오버 높이보다 위에 있을 때만 true 반환
+            if (isStationary(fruit) && fruit.getY() <= GAME_OVER_HEIGHT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 	private void checkGameOverCondition() {
 		boolean isAboveLine = checkGameOver();
@@ -239,5 +294,6 @@ public class GameScreen extends JPanel {
             fruit.draw(g);
         }
     }
+    
 }
 

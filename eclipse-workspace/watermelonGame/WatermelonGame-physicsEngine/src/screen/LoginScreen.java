@@ -17,6 +17,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import database.Login;
+import database.SessionManager;
 
 public class LoginScreen extends JPanel {
 	private MainFrame mainFrame;

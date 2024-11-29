@@ -15,7 +15,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-public class ShopScreen extends JPanel {
+import watermelonGame.Coin;
+
+public class ShopScreen extends JPanel implements RefreshableScreen{
 	private JLabel coin; // 현재 코인 개수
 	private BufferedImage backgroundImage;
 	private MainFrame mainFrame;
@@ -73,16 +75,21 @@ public class ShopScreen extends JPanel {
 
 	@Override
 	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		if (backgroundImage != null) {
-			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-		}
+	    super.paintComponent(g);
+	    if (backgroundImage != null) {
+	        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+	    }
 	}
 
 	private void showInsufficientCoinsMessage() {
 		JOptionPane.showMessageDialog(this, "Not enough coins!", "Warning", JOptionPane.WARNING_MESSAGE);
 
 	}
+	@Override
+	public void refreshUI() {
+	    coin.setText(String.valueOf(Coin.getCoins()));
+	}
+
 
 	public void updateCoins(int coins) {
 		coin.setText("" + coins);

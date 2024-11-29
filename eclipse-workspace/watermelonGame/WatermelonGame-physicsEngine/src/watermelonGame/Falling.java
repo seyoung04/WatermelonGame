@@ -1,3 +1,5 @@
+//Falling.java
+
 package watermelonGame;
 
 import java.awt.Graphics;
@@ -17,7 +19,7 @@ public class Falling {
     Fruit.FruitList type;
     boolean isMarkedForDeletion = false;
     boolean isMerged = false; 
-    double angularVelocity = 5; // 회전 속도
+    double angularVelocity = 0; // 회전 속도
     double rotationAngle = 0;  // 현재 회전 각도
     
 
@@ -29,12 +31,12 @@ public class Falling {
     private static final int WALL_LEFT = 30;
     private static final int WALL_RIGHT = 415;
     private static final int WALL_TOP = 0;
-    private static final int WALL_BOTTOM = 723;
+    private static final int WALL_BOTTOM = 695;
     private static final double ENERGY_LOSS = 0.5;
 
     public Falling(int x, Image fruitImage, Fruit.FruitList type, GameScreen gameScreen) {
         this.x = x;
-        this.y = 150;
+        this.y = 200;
         this.fruitImage = fruitImage;
         this.type = type;
         this.diameter = type.getSize();
@@ -72,7 +74,7 @@ public class Falling {
         }
 
         velocityX *= FRICTION;
-        angularVelocity *= FRICTION/5; // 마찰로 회전 속도 감소
+        angularVelocity *= FRICTION; // 마찰로 회전 속도 감소
     }
 
     public boolean mergeWith(Falling other) {
@@ -123,9 +125,7 @@ public class Falling {
         }
     }
 
-    public boolean isMoving() {
-		return Math.abs(velocityY) > 1;
-	}
+
     public int getX() {
         return (int) x;
     }
@@ -133,9 +133,6 @@ public class Falling {
     public int getY() {
         return (int) y;
     }
-    public double getVelocityY() {
-		return velocityY;
-	}
 
     public double getCenterX() {
         return x + diameter / 2;
@@ -175,5 +172,4 @@ public class Falling {
 
     public Fruit.FruitList getType() { 
         return this.type;
-    }
-}
+    }}

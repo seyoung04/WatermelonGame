@@ -1,109 +1,212 @@
 package screen;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.awt.*;
+import java.util.*;
+import javax.swing.*;
 
-import javax.imageio.ImageIO;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-
+import watermelonGame.Coin;
 import watermelonGame.Fruit;
 
-public class SkinShopScreen extends JPanel {
-    private BufferedImage backgroundImage;
-    private JLabel coin; // 현재 코인 개수
-    private JButton defaultButton;
-    private JButton aButton;
-    private JButton bButton;
-    private static String appliedSkin = "default"; // 현재 적용된 스킨 (기본값은 default)
+public class SkinShopScreen extends JPanel implements RefreshableScreen {
+    private JLabel coinLabel; // 현재 코인 개수 표시
+    private JScrollPane scrollPane; // 스크롤 추가
+    private JPanel skinListPanel; // 스크롤 가능한 패널
+    private static String appliedSkin = "default"; // 기본 스킨
+
+    // 스킨 데이터 관리
+    private final Map<String, SkinData> skins = new LinkedHashMap<>(); // 순서를 유지하기 위해 LinkedHashMap 사용
 
     public SkinShopScreen(MainFrame mainFrame) {
         setLayout(null);
 
-        // 배경 이미지 설정
-        try {
-            backgroundImage = ImageIO.read(new File("WatermelonGame-physicsEngine/src/image/skinshop.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // 코인 레이블
+        coinLabel = new JLabel(String.valueOf(Coin.getCoins()));
+        coinLabel.setBounds(65, 32, 150, 40);
+        coinLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 21));
+        add(coinLabel);
 
-        // coin 레이블
-        coin = new JLabel("3000");
-        coin.setBounds(65, 32, 150, 40);
-        coin.setFont(new Font("Comic Sans MS", Font.BOLD, 21)); // 폰트 설정
-        add(coin);
-
-        // back 버튼
+        // Back 버튼
         RoundedButton backButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
         backButton.setBounds(420, 22, 64, 64);
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mainFrame.showScreen("ShopScreen");
-            }
-        });
+        backButton.addActionListener(e -> mainFrame.showScreen("ShopScreen"));
         add(backButton);
 
-        // 각 스킨에 대한 "적용하기" 버튼 생성
-        defaultButton = createButton("Default Skin - 적용하기", 350, 100);
-        aButton = createButton("A Skin - 적용하기", 350, 200);
-        bButton = createButton("B Skin - 적용하기", 350, 300);
+        // 스킨 데이터 초기화
+        initializeSkinData();
 
-        // 각 버튼에 액션 리스너 추가
-        defaultButton.addActionListener(e -> applySkin("default"));
-        aButton.addActionListener(e -> applySkin("A"));
-        bButton.addActionListener(e -> applySkin("B"));
+        // 스킨 목록 패널
+        skinListPanel = new JPanel();
+        skinListPanel.setLayout(new BoxLayout(skinListPanel, BoxLayout.Y_AXIS));
+        skinListPanel.setOpaque(false); // 배경 투명
 
-        // 패널에 버튼 추가
-        add(defaultButton);
-        add(aButton);
-        add(bButton);
+        // 스킨 항목 추가
+        for (String skinKey : skins.keySet()) {
+            addSkinItem(skinKey, skins.get(skinKey));
+        }
+
+     // 스크롤 패널 설정
+        scrollPane = new JScrollPane(skinListPanel);
+        scrollPane.setBounds(50, 100, 400, 550); // 폭을 380으로 조정
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // 가로 스크롤바 숨김
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null);
+        add(scrollPane);
+
 
         updateButtonStates(); // 초기 버튼 상태 설정
     }
 
-    private JButton createButton(String text, int x, int y) {
-        JButton button = new JButton(text);
-        button.setBounds(x, y, 150, 30); // 버튼 크기 및 위치 설정
-        return button;
+    private void initializeSkinData() {
+        // Default Skin은 항상 맨 위
+        skins.put("default", new SkinData("Default Skin", 0, true));
+        skins.put("A", new SkinData("Skin A", 1000, false));
+        skins.put("B", new SkinData("Skin B", 1500, false));
+        skins.put("C", new SkinData("Skin C", 2000, false));
+        skins.put("D", new SkinData("Skin D", 2500, false));
     }
 
-    private void applySkin(String skin) {
-        appliedSkin = skin;
+    private void addSkinItem(String skinKey, SkinData skinData) {
+        JPanel skinItemPanel = new JPanel();
+        skinItemPanel.setLayout(null);
+        skinItemPanel.setPreferredSize(new Dimension(400, 130)); // 폭을 400, 높이를 130으로 조정
+        skinItemPanel.setBackground(new Color(255, 243, 220, 200)); // 투명도 추가
+        skinItemPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+        // 스킨 사진 (왼쪽에 배치)
+        JLabel skinImageLabel = new JLabel();
+        skinImageLabel.setBounds(20, 15, 120, 100); // 이미지 크기를 120x100으로 설정
+        skinImageLabel.setIcon(new ImageIcon("src/skins/" + skinKey + "/default")); // 스킨마다 경로 다르게 설정
+        skinItemPanel.add(skinImageLabel);
+
+        // 스킨 이름 라벨 (조금 더 오른쪽에 배치)
+        JLabel nameLabel = new JLabel(skinData.getName());
+        nameLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
+        nameLabel.setBounds(260, 15, 200, 30); // x 좌표를 조정하여 오른쪽으로 이동
+        skinItemPanel.add(nameLabel);
+
+        // 상태 버튼 (오른쪽 아래에 배치)
+        RoundedButton actionButton = new RoundedButton("", new Color(220, 80, 80), Color.WHITE, 10);
+        actionButton.setBounds(260, 60, 90, 40); // 버튼 크기와 위치를 조정
+        actionButton.addActionListener(e -> handleSkinAction(skinKey, skinData, actionButton));
+        skinItemPanel.add(actionButton);
+
+        skinListPanel.add(skinItemPanel);
+    }
+
+
+    private void handleSkinAction(String skinKey, SkinData skinData, RoundedButton button) {
+        if (skinData.isOwned()) {
+            applySkin(skinKey);
+        } else {
+            if (Coin.getCoins() >= skinData.getPrice()) {
+                int response = JOptionPane.showConfirmDialog(this, "스킨을 구매하시겠습니까? (" + skinData.getPrice() + " 코인)", 
+                        "스킨 구매", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    Coin.subtractCoins(skinData.getPrice());
+                    coinLabel.setText(String.valueOf(Coin.getCoins()));
+                    skinData.setOwned(true);
+                    updateButtonStates();
+                    JOptionPane.showMessageDialog(this, "스킨 " + skinData.getName() + "을/를 구매하셨습니다!");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "코인이 부족합니다!", "구매 실패", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void applySkin(String skinKey) {
+        appliedSkin = skinKey;
         updateButtonStates();
-        Fruit.refreshImages(); // 모든 과일의 이미지를 새로고침
-        JLabel messageLabel = new JLabel("스킨 " + appliedSkin + " 이/가 적용되었습니다!");
-        JOptionPane.showMessageDialog(this, messageLabel);
+        Fruit.refreshImages();
+        JOptionPane.showMessageDialog(this, "스킨 " + skins.get(skinKey).getName() + " 이/가 적용되었습니다!");
     }
 
     private void updateButtonStates() {
-        defaultButton.setText("Default Skin" + (appliedSkin.equals("default") ? " - 적용중" : " - 적용하기"));
-        aButton.setText("A Skin" + (appliedSkin.equals("A") ? " - 적용중" : " - 적용하기"));
-        bButton.setText("B Skin" + (appliedSkin.equals("B") ? " - 적용중" : " - 적용하기"));
+        Component[] components = skinListPanel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JPanel) {
+                JPanel panel = (JPanel) component;
+                for (Component subComponent : panel.getComponents()) {
+                    if (subComponent instanceof RoundedButton) {
+                        RoundedButton button = (RoundedButton) subComponent;
+                        String skinKey = skins.keySet().toArray(new String[0])[skinListPanel.getComponentZOrder(panel)];
+                        SkinData skinData = skins.get(skinKey);
+
+                        if (skinData.isOwned()) {
+                            if (appliedSkin.equals(skinKey)) {
+                                button.setText("적용중");
+                                button.setBackground(new Color(218, 165, 32)); // 약간 어두운 갈색
+                           
+                                button.setContentAreaFilled(false); // Look-and-Feel 무시
+                                button.setEnabled(false); // 비활성화
+                            } else {
+                                button.setText("적용하기");
+                                button.setBackground(new Color(198, 155, 93)); // 갈색 계열
+                               
+                                button.setContentAreaFilled(false);
+                                button.setEnabled(true); // 활성화
+                            }
+                        } else {
+                            button.setText(skinData.getPrice() + " 코인");
+                            button.setBackground(new Color(245, 190, 60)); // 어두운 노란색
+                          
+                            button.setContentAreaFilled(false);
+                            button.setEnabled(true); // 활성화
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    public static String getAppliedSkin() {
+
+
+    public static String getAppliedSkin() { // 추가된 메서드
         return appliedSkin;
+    }
+
+    @Override
+    public void refreshUI() {
+        coinLabel.setText(String.valueOf(Coin.getCoins()));
+        updateButtonStates();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        // 배경 이미지를 그립니다
+        ImageIcon backgroundImage = new ImageIcon("WatermelonGame-physicsEngine/src/image/skinshop.png");
+        g.drawImage(backgroundImage.getImage(), 0, 0, getWidth(), getHeight(), this);
+    }
+    
+
+    private static class SkinData {
+        private final String name;
+        private final int price;
+        private boolean isOwned;
+
+        public SkinData(String name, int price, boolean isOwned) {
+            this.name = name;
+            this.price = price;
+            this.isOwned = isOwned;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getPrice() {
+            return price;
+        }
+
+        public boolean isOwned() {
+            return isOwned;
+        }
+
+        public void setOwned(boolean owned) {
+            isOwned = owned;
         }
     }
-
-    public void updateCoins(int coins) {
-        coin.setText("" + coins);
-    }
 }
-

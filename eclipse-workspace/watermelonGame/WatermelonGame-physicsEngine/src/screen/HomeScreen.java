@@ -1,3 +1,4 @@
+//HomeScreen.java
 package screen;
 
 import java.awt.Color;
@@ -8,106 +9,97 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import database.Database;
+import watermelonGame.Coin;
 import watermelonGame.Falling;
+import watermelonGame.HighScore;
 
-public class HomeScreen extends JPanel {
-    private JLabel highScore;
-    private JLabel coin;
-    private BufferedImage backgroundImage;
-    private GameScreen gameScreen;
-    private int userId;
+public class HomeScreen extends JPanel implements RefreshableScreen{
+	private JLabel highScore; // 개인 최고 기록
+	private JLabel coin; // 현재 코인 개수
+	private BufferedImage backgroundImage; // 배경 이미지
 
-    public HomeScreen(MainFrame mainFrame) {
+	List<Falling> fruits;
 
-        setLayout(null);
-        setBackground(new Color(222, 184, 135));
+	// 버튼의 위치 및 크기
 
-        // 배경 이미지 설정
-        try {
-            backgroundImage = ImageIO.read(new File("WatermelonGame-physicsEngine/src/image/homescreen.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	public HomeScreen(MainFrame mainFrame) {
+		setLayout(null);
+		setBackground(new Color(222, 184, 135)); // 기본 배경 색상 설정 (이미지가 로드되지 않을 경우)
 
-        // 최고 점수 라벨 설정
-        highScore = new JLabel("Loading...");
-        highScore.setBounds(110, 32, 150, 40);
-        highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 27));
-        add(highScore);
+		// 배경 이미지 설정
+		try {
+			backgroundImage = ImageIO.read(new File("WatermelonGame-physicsEngine/src/image/homescreen.png"));
+		} catch (IOException e) {
+			e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
+		}
 
-        // 코인 라벨 설정
-        coin = new JLabel("Loading...");
-        coin.setBounds(340, 32, 150, 40);
-        coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27));
-        add(coin);
+		// high score 레이블
+		highScore = new JLabel("5000");
+		highScore.setBounds(110, 32, 150, 40);
+		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		add(highScore);
 
-        // 게임 시작 버튼 설정
-        RoundedButton startButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
-        startButton.setBounds(140, 373, 215, 75);
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 게임 시작 시 데이터 업데이트
+		// coin 레이블
+		coin = new JLabel("3000");
+		coin.setBounds(340, 32, 150, 40);
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		add(coin);
 
-                mainFrame.showScreen("GameScreen");
-            }
-        });
-        add(startButton);
+		// Start 버튼
+		RoundedButton startButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
+		startButton.setBounds(140, 373, 215, 75);
+		startButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.showScreen("GameScreen");
+			}
+		});
+		add(startButton);
 
-        // 상점 버튼 설정
-        RoundedButton shopButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
-        shopButton.setBounds(158, 465, 180, 55);
-        shopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mainFrame.showScreen("ShopScreen");
-            }
-        });
-        add(shopButton);
+		// Shop 버튼
+		RoundedButton shopButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
+		shopButton.setBounds(158, 465, 180, 55);
+		shopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.showScreen("ShopScreen");
+			}
+		});
+		add(shopButton);
+	}
 
-        // 데이터베이스에서 점수와 코인 정보 가져오기
-        loadUserData();
-    }
+	@Override
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		// 배경 이미지 그리기
+		if (backgroundImage != null) {
+			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+		}
+	}
+	@Override
+	public void refreshUI() {
+	    // 하이스코어와 코인 수를 동기화
+	    highScore.setText(String.valueOf(HighScore.getHighScore()));
+	    coin.setText(String.valueOf(Coin.getCoins()));
+	}
 
-    private void loadUserData() {
-        // 데이터베이스에서 점수와 코인 가져오기
-        int[] userStats = Database.getUserScoreAndCoins(userId);
-        int highScoreValue = userStats[0];
-        int coinsValue = userStats[1];
+	public void updateHighScore(int score) {
+	    // UI 업데이트를 위해 하이스코어 갱신
+	    if (score > HighScore.getHighScore()) {
+	        HighScore.setHighScore(score); // HighScore 클래스 업데이트
+	        highScore.setText(String.valueOf(score)); // UI 갱신
+	    }
+	}
 
-        // 라벨 업데이트
-        updateHighScore(highScoreValue);
-        updateCoins(coinsValue);
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-        }
-    }
-
-    // 최고 점수 업데이트 메서드
-    public void updateHighScore(int score) {
-        highScore.setText("" + score);
-    }
-
-    // 코인 업데이트 메서드
-    public void updateCoins(int coins) {
-        coin.setText("" + coins);
-    }
-
-    // userId를 업데이트하는 메서드
-    public void updateUserId(int userId) {
-        this.userId = userId;
-        // userId 변경 시 데이터 갱신
-        loadUserData();
-    }
+	public void updateCoins(int coins) {
+	    // UI 업데이트를 위해 코인 수 갱신
+	    Coin.setCoins(coins); // Coin 클래스 업데이트
+	    coin.setText(String.valueOf(coins)); // UI 갱신
+	}
 }

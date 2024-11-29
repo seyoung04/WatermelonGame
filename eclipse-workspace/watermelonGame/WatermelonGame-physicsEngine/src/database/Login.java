@@ -39,7 +39,7 @@ public class Login {
     // 회원가입 기능
     public static boolean register(String username, String password) {
         // 아이디 중복 체크
-        if (isUsernameAvailable(username)) {
+        if (!isUsernameAvailable(username)) {
             System.out.println("이미 존재하는 사용자 이름입니다.");
             return false;
         }

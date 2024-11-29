@@ -171,6 +171,4 @@ public class Collision {
 
 		double minDistance = (fallingInstance.diameter + otherF.diameter) / 2.0;
 		return minDistance - distance;
-	}
-
-}
+	}}

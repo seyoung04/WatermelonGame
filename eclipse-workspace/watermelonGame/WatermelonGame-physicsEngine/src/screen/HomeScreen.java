@@ -14,41 +14,46 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
+import database.Database;
 import watermelonGame.Coin;
 import watermelonGame.Falling;
 import watermelonGame.HighScore;
 
 public class HomeScreen extends JPanel implements RefreshableScreen{
-	private JLabel highScore; // 개인 최고 기록
-	private JLabel coin; // 현재 코인 개수
-	private BufferedImage backgroundImage; // 배경 이미지
+	private JLabel highScore; 
+	private JLabel coin; 
+	private BufferedImage backgroundImage;
 
 	List<Falling> fruits;
+	private int userId;
 
 	// 버튼의 위치 및 크기
 
 	public HomeScreen(MainFrame mainFrame) {
 		setLayout(null);
-		setBackground(new Color(222, 184, 135)); // 기본 배경 색상 설정 (이미지가 로드되지 않을 경우)
+		setBackground(new Color(222, 184, 135)); 
 
 		// 배경 이미지 설정
 		try {
 			backgroundImage = ImageIO.read(new File("WatermelonGame-physicsEngine/src/image/homescreen.png"));
 		} catch (IOException e) {
-			e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
+			e.printStackTrace(); 
 		}
 
 		// high score 레이블
-		highScore = new JLabel("5000");
-		highScore.setBounds(110, 32, 150, 40);
-		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		highScore = new JLabel("0");
+		highScore.setBounds(100, 32, 105, 40);
+		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 23)); 
+		highScore.setHorizontalAlignment(SwingConstants.RIGHT);
 		add(highScore);
 
+
 		// coin 레이블
-		coin = new JLabel("3000");
+		coin = new JLabel("0");
 		coin.setBounds(340, 32, 150, 40);
-		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 23)); // 폰트 설정
 		add(coin);
 
 		// Start 버튼
@@ -72,34 +77,34 @@ public class HomeScreen extends JPanel implements RefreshableScreen{
 			}
 		});
 		add(shopButton);
+	    refreshUI();
 	}
 
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		// 배경 이미지 그리기
 		if (backgroundImage != null) {
 			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 		}
 	}
 	@Override
 	public void refreshUI() {
-	    // 하이스코어와 코인 수를 동기화
-	    highScore.setText(String.valueOf(HighScore.getHighScore()));
-	    coin.setText(String.valueOf(Coin.getCoins()));
-	}
+	    if (userId <= 0) {
+	        System.err.println("Invalid userId home: " + userId);
+	        return;
+	    }
+	    String[] userDetails = Database.getUserDetails(userId);
 
-	public void updateHighScore(int score) {
-	    // UI 업데이트를 위해 하이스코어 갱신
-	    if (score > HighScore.getHighScore()) {
-	        HighScore.setHighScore(score); // HighScore 클래스 업데이트
-	        highScore.setText(String.valueOf(score)); // UI 갱신
+	    if (userDetails != null) {
+	        highScore.setText(userDetails[1]);
+	        coin.setText(userDetails[2]);     
+	    } else {
+	        System.err.println("User details not found for userId: " + userId);
 	    }
 	}
 
-	public void updateCoins(int coins) {
-	    // UI 업데이트를 위해 코인 수 갱신
-	    Coin.setCoins(coins); // Coin 클래스 업데이트
-	    coin.setText(String.valueOf(coins)); // UI 갱신
-	}
+	public void setUserId(int userId) {
+        this.userId = userId;
+        refreshUI(); 
+    }
 }

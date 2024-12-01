@@ -24,7 +24,7 @@ public class Falling {
     
 
 
-    private GameScreen gameScreen; // GameScreen 참조 추가
+    private GameScreen gameScreen; 
 
     private static final double GRAVITY = 0.4;
     private static final double FRICTION = 0.98;
@@ -40,7 +40,7 @@ public class Falling {
         this.fruitImage = fruitImage;
         this.type = type;
         this.diameter = type.getSize();
-        this.gameScreen = gameScreen; // GameScreen 참조 저장
+        this.gameScreen = gameScreen; 
     }
     
     public GameScreen getGameScreen() {
@@ -70,18 +70,18 @@ public class Falling {
 
             // 회전 각도 업데이트
             rotationAngle += angularVelocity / 5;
-            rotationAngle %= 360; // 각도는 360도를 초과하지 않도록 제한
+            rotationAngle %= 360; 
         }
 
         velocityX *= FRICTION;
-        angularVelocity *= FRICTION; // 마찰로 회전 속도 감소
+        angularVelocity *= FRICTION; 
     }
 
     public boolean mergeWith(Falling other) {
         if (this.type == other.type) {
-            this.type = this.type.next(); // 다음 단계 과일로 변경
-            this.diameter = this.type.getSize(); // 크기 변경
-            this.fruitImage = this.type.getImage(); // 이미지 변경
+            this.type = this.type.next(); 
+            this.diameter = this.type.getSize();
+            this.fruitImage = this.type.getImage(); 
 
             // GameScreen에서 점수와 코인 업데이트
             if (gameScreen != null) {
@@ -165,7 +165,12 @@ public class Falling {
     public void setFruitImage(Image fruitImage) {
         this.fruitImage = fruitImage;
     }
-
+    public double getVelocityY() {
+		return velocityY;
+	}
+    public boolean isMoving() {
+		return Math.abs(velocityY) > 1;
+	}
     public Image getFruitImage() {
         return this.fruitImage;
     }

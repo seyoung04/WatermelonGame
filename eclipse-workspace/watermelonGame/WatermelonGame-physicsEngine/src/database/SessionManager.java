@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public class SessionManager {
     private static volatile SessionManager instance;
-    private int userId = -1; // -1은 로그인되지 않은 상태
+    private int userId = -1; //로그인되지 않은 상태
     private int coins;
     private int high_score;
     private String username;
@@ -58,8 +58,8 @@ public class SessionManager {
         this.username = username;
     }
 
-    public String getUsername() {
-        return username;
+    public int getuserId() {
+        return userId;
     }
 
     // 하이 스코어 설정

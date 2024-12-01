@@ -44,7 +44,7 @@ public class Login {
             return false;
         }
 
-        String query = "INSERT INTO Users (username, password) VALUES (?, ?)";
+        String query = "INSERT INTO Users (username, password, active_skin_name) VALUES (?, ?, 'default_skin')";
         try (Connection conn = Database.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -72,7 +72,7 @@ public class Login {
     }
 
     // 사용자 이름 사용 가능 여부 체크
-    private static boolean isUsernameAvailable(String username) {
+    public static boolean isUsernameAvailable(String username) {
         String query = "SELECT COUNT(*) FROM Users WHERE username = ?";
         try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, username);

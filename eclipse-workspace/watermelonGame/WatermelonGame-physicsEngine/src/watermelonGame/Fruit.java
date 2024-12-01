@@ -34,16 +34,16 @@ public class Fruit {
             this.color = color;
             this.size = size;
             this.imageName = imageName;
-            loadImage(); // 이미지 초기 로드
+            loadImage(); 
         }
 
         public void loadImage() {
-            String skinPath = "WatermelonGame-physicsEngine/src/image/" + SkinShopScreen.getAppliedSkin() + "/"; // 스킨 경로 반영
+            String skinPath = "WatermelonGame-physicsEngine/src/image/" + SkinShopScreen.getAppliedSkin() + "/"; 
             try {
                 this.image = ImageIO.read(new File(skinPath + imageName));
             } catch (IOException e) {
                 e.printStackTrace();
-                this.image = null; // 로드 실패 시 null로 설정
+                this.image = null; 
             }
         }
 

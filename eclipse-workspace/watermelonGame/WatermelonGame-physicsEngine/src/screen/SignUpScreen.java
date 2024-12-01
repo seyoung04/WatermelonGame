@@ -18,7 +18,7 @@ import javax.swing.JTextField;
 
 import database.Login;
 
-public class SignUpScreen extends JPanel {
+public class SignUpScreen extends JPanel implements RefreshableScreen{
 	private MainFrame mainFrame;
 	private JTextField idField;
 	private JPasswordField passwordField;
@@ -38,24 +38,20 @@ public class SignUpScreen extends JPanel {
 		passwordField = new JPasswordField(20);
 		passwordCheckField = new JPasswordField(20);
 
-		// 예시 위치 (실제 위치로 수정 필요)
-		// 텍스트 필드 위치 조정
-		idField.setBounds(250, 290, 140, 30); // y: 295
-		passwordField.setBounds(250, 330, 140, 30); // y: 325 -> 335 (간격 10 증가)
-		passwordCheckField.setBounds(250, 370, 140, 30); // y: 360 -> 375 (간격 10 증가)
-		// 텍스트 필드 스타일링
+		// 텍스트 필드 위치 
+		idField.setBounds(250, 290, 140, 30); 
+		passwordField.setBounds(250, 330, 140, 30); 
+		passwordCheckField.setBounds(250, 370, 140, 30);
 		styleTransparentTextField(idField);
 		styleTransparentTextField(passwordField);
 		styleTransparentTextField(passwordCheckField);
 
 		// 투명 버튼 생성
-
 		JButton signupButton = new JButton();
 		signupButton.setBounds(195, 420, 112, 45);
 		styleTransparentButton(signupButton);
 
-		// 회원가입 버튼 이벤트
-
+		// 회원가입 버튼
 		signupButton.addActionListener(e -> {
 			String id = idField.getText();
 			String password = new String(passwordField.getPassword());
@@ -73,7 +69,6 @@ public class SignUpScreen extends JPanel {
 			}
 		});
 
-		// 컴포넌트 추가
 		add(idField);
 		add(passwordField);
 		add(passwordCheckField);
@@ -82,7 +77,8 @@ public class SignUpScreen extends JPanel {
 
 		setBounds(0, 0, 500, 750);
 	}
-
+	 public void refreshUI() {
+	    }
 	// 투명 버튼 스타일 설정
 	private void styleTransparentButton(JButton button) {
 		button.setOpaque(false);
@@ -105,24 +101,23 @@ public class SignUpScreen extends JPanel {
 
 	// 투명 텍스트 필드 스타일 설정
 	private void styleTransparentTextField(JTextField textField) {
-		textField.setOpaque(false); // 배경 투명
-		textField.setForeground(Color.WHITE); // 텍스트 색상
-		textField.setCaretColor(Color.WHITE); // 커서 색상
+		textField.setOpaque(false); 
+		textField.setForeground(Color.WHITE); 
+		textField.setCaretColor(Color.WHITE); 
 
-		// 초기 테두리 설정을 확실히 하기 위해
-		textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE)); // 새로운 테두리 설정
+		textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE)); 
 
 		// 포커스 효과
 		textField.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
-				textField.setBorder(null); // 기존 테두리 제거
+				textField.setBorder(null);
 				textField.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.WHITE));
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				textField.setBorder(null); // 기존 테두리 제거
+				textField.setBorder(null); 
 				textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE));
 			}
 		});

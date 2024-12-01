@@ -12,19 +12,22 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import watermelonGame.Coin;
+import database.Database;
 
 public class ShopScreen extends JPanel implements RefreshableScreen{
 	private JLabel coin; // 현재 코인 개수
 	private BufferedImage backgroundImage;
 	private MainFrame mainFrame;
+	private GameScreen gameScreen;
+	private int userId;
+	private int coins;
 
-	public ShopScreen(MainFrame mainFrame) {
+	public ShopScreen(MainFrame mainFrame, int userId) {
 		this.mainFrame = mainFrame;
 		setLayout(null);
+        this.userId = userId; // userId 저장
 
 		// 배경 이미지 설정
 		try {
@@ -34,7 +37,7 @@ public class ShopScreen extends JPanel implements RefreshableScreen{
 		}
 
 		// coin 레이블
-		coin = new JLabel("3000");
+		coin = new JLabel("0");
 		coin.setBounds(100, 32, 150, 40);
 		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
 		add(coin);
@@ -47,6 +50,7 @@ public class ShopScreen extends JPanel implements RefreshableScreen{
 			public void actionPerformed(ActionEvent e) {
 				mainFrame.showScreen("HomeScreen");
 			}
+			
 		});
 		add(backButton);
 
@@ -71,6 +75,7 @@ public class ShopScreen extends JPanel implements RefreshableScreen{
 			}
 		});
 		add(skinButton);
+		refreshUI();
 	}
 
 	@Override
@@ -81,17 +86,33 @@ public class ShopScreen extends JPanel implements RefreshableScreen{
 	    }
 	}
 
-	private void showInsufficientCoinsMessage() {
-		JOptionPane.showMessageDialog(this, "Not enough coins!", "Warning", JOptionPane.WARNING_MESSAGE);
 
-	}
+	
 	@Override
 	public void refreshUI() {
-	    coin.setText(String.valueOf(Coin.getCoins()));
-	}
+	    if (userId <= 0) {
+	        System.err.println("Invalid userId home: " + userId);
+	        return;
+	    }
+	    
+	    String[] userDetails = Database.getUserDetails(userId);
 
+	    if (userDetails != null && userDetails.length > 2) {	        
+	        coin.setText(userDetails[2]); // Coins
+	        coins = Integer.parseInt(userDetails[2]);
+	    } else {
+	        System.err.println("User details not found or incomplete for userId: " + userId);
+	        coin.setText("0"); 
+	    }
+	}
 
 	public void updateCoins(int coins) {
 		coin.setText("" + coins);
 	}
+
+	public void setUserId(int userId) {
+        this.userId = userId;
+        refreshUI(); 
+    }
 }
+

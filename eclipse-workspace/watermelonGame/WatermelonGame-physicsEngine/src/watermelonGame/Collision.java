@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
+import database.Database;
+import database.SessionManager;
 import screen.GameScreen;
 
 public class Collision {
@@ -144,6 +146,19 @@ public class Collision {
 
 	            // 병합 후 점수 업데이트
 	            GameScreen gameScreen = fallingInstance.getGameScreen();
+	            SessionManager sessionManager = new SessionManager();
+
+	            if (gameScreen != null) {
+	                String fruitType = fallingInstance.type.toString().toLowerCase();
+	                gameScreen.updateScoreAndCoins(fruitType);
+
+	                // score가 highScore보다 크면 highScore 갱신
+	                int currentScore = gameScreen.getScore();
+	                int highScore = Database.getHighScore();
+	                if (currentScore > highScore) {
+	                    gameScreen.updateHighScore(sessionManager.getUserId());
+	                }
+	            }
 
 	            if (gameScreen != null) {
 	                String fruitType = fallingInstance.type.toString().toLowerCase();

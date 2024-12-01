@@ -16,10 +16,11 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import database.Database;
 import database.Login;
 import database.SessionManager;
 
-public class LoginScreen extends JPanel {
+public class LoginScreen extends JPanel   implements RefreshableScreen {
 	private MainFrame mainFrame;
 	private JTextField idField;
 	private JPasswordField passwordField;
@@ -37,11 +38,9 @@ public class LoginScreen extends JPanel {
 		idField = new JTextField(20);
 		passwordField = new JPasswordField(20);
 
-		// 예시 위치 (실제 위치로 수정 필요)
-		idField.setBounds(250, 325, 140, 30); // x, y, width, height
-		passwordField.setBounds(250, 360, 140, 30); // x, y, width, height
+		idField.setBounds(250, 325, 140, 30); 
+		passwordField.setBounds(250, 360, 140, 30); 
 
-		// 텍스트 필드 스타일링
 		styleTransparentTextField(idField);
 		styleTransparentTextField(passwordField);
 
@@ -56,21 +55,24 @@ public class LoginScreen extends JPanel {
 
 		// 로그인 버튼 이벤트
 		loginButton.addActionListener(e -> {
-			String id = idField.getText();
-			String password = new String(passwordField.getPassword());
+		    String id = idField.getText();
+		    String password = new String(passwordField.getPassword());
 
-			if (password.isEmpty() || id.isEmpty()) {
-				JOptionPane.showMessageDialog(null, "모든 필드를 입력해주세요.");
-				return;
-			}
+		    if (password.isEmpty() || id.isEmpty()) {
+		        JOptionPane.showMessageDialog(null, "모든 필드를 입력해주세요.");
+		        return;
+		    }
 
-			if (Login.login(id, password)) {
-				JOptionPane.showMessageDialog(null, "로그인 성공!");
-				mainFrame.showScreen("HomeScreen");
-			} else {
-				JOptionPane.showMessageDialog(null, "아이디 또는 비밀번호가 일치하지 않습니다.");
-			}
+		    if (Login.login(id, password)) {
+		        JOptionPane.showMessageDialog(null, "로그인 성공!");
+		        int userId = SessionManager.getInstance().getUserId(); 
+		        mainFrame.loginSuccess(userId); 
+		        mainFrame.showScreen("HomeScreen");
+		    } else {
+		        JOptionPane.showMessageDialog(null, "아이디 또는 비밀번호가 일치하지 않습니다.");
+		    }
 		});
+
 
 		// 회원가입 버튼 이벤트
 		signupButton.addActionListener(e -> {
@@ -87,7 +89,6 @@ public class LoginScreen extends JPanel {
 		setBounds(0, 0, 500, 750);
 	}
 
-	// 투명 버튼 스타일 설정
 	private void styleTransparentButton(JButton button) {
 		button.setOpaque(false);
 		button.setContentAreaFilled(false);
@@ -107,24 +108,25 @@ public class LoginScreen extends JPanel {
 		});
 	}
 
-	// 투명 텍스트 필드 스타일 설정
 	private void styleTransparentTextField(JTextField textField) {
-		textField.setOpaque(false); // 배경 투명
-		textField.setForeground(Color.WHITE); // 텍스트 색상
-		textField.setCaretColor(Color.WHITE); // 커서 색상
-		textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE)); // 밑줄만 표시
+		textField.setOpaque(false); 
+		textField.setForeground(Color.WHITE);
+		textField.setCaretColor(Color.WHITE); 
+		textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE)); 
 
 		// 포커스 효과
 		textField.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
-				textField.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.WHITE)); // 포커스 시 밑줄 굵게
+				textField.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.WHITE)); 
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE)); // 포커스 잃으면 밑줄 얇게
+				textField.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.WHITE)); 
 			}
 		});
 	}
+	 public void refreshUI() {
+	    }
 }

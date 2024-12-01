@@ -171,7 +171,6 @@ public class Database {
             stmt.setInt(4, userId);
 
             int rowsAffected = stmt.executeUpdate();
-            System.out.println("Rows affected: " + rowsAffected);
 
             if (rowsAffected == 0) {
                 System.out.println("No rows updated. Verify user ID: " + userId);
@@ -210,7 +209,6 @@ public class Database {
                 if (rs.next()) {
                     result[0] = rs.getInt("high_score");
                     result[1] = rs.getInt("coins");
-                    System.out.println("UserID: " + userId + ", HighScore: " + result[0] + ", coins: " + result[1]);
                 } else {
                     System.out.println("UserID: " + userId + " not found.");
                 }
@@ -257,7 +255,6 @@ public class Database {
             stmt.setInt(1, coins);
             stmt.setInt(2, userId);
             stmt.executeUpdate();
-            System.out.println("UserID: " + userId + " - Coins updated to: " + coins);
 
         } catch (SQLException e) {
             e.printStackTrace();

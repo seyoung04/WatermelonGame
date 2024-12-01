@@ -8,7 +8,6 @@ import java.util.List;
 import java.awt.Component; // 필요한 경우 다른 필요한 임포트도 추가
 
 import database.Database;
-import database.DatabaseManager;
 import watermelonGame.Coin;
 import watermelonGame.Fruit;
 
@@ -66,7 +65,7 @@ public class SkinShopScreen extends JPanel implements RefreshableScreen {
     }
     //스킨 적용
     private void setAppliedSkin(String skinName) {
-        try (Connection conn = DatabaseManager.getConnection();
+        try (Connection conn = Database.getConnection();
              PreparedStatement stmt = conn.prepareStatement("UPDATE users SET active_skin_name = ? WHERE id = ?")) {
             
             stmt.setString(1, skinName);
@@ -83,7 +82,7 @@ public class SkinShopScreen extends JPanel implements RefreshableScreen {
 
     //스킨데이터 초기화
     private void initializeSkinDataFromDB() {
-    	try (Connection conn = DatabaseManager.getConnection();
+    	try (Connection conn = Database.getConnection();
                 PreparedStatement userQuery = conn.prepareStatement("SELECT coins, active_skin_name FROM users WHERE id = ?"); 
                 PreparedStatement skinsQuery = conn.prepareStatement(
                         "SELECT s.skin_name, s.price, us.user_id IS NOT NULL AS owned " +
@@ -240,7 +239,7 @@ public class SkinShopScreen extends JPanel implements RefreshableScreen {
 
     //스킨 적용하기
     private void applySkin(String skinkey) {
-        try (Connection conn = DatabaseManager.getConnection();
+        try (Connection conn = Database.getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT skin_name FROM skins WHERE skin_name = ?")) {
             
             stmt.setString(1, skinkey);

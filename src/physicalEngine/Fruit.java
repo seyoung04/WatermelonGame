@@ -18,9 +18,9 @@ public class Fruit {
 	// 포도, 귤, 사과, 오렌지, 복숭아, 메론, 수박
 	public enum FruitList {
 		GRAPE(Color.decode("#C93BAA"), 50, "grape.png"), TANGERINE(Color.decode("#FF9808"), 70, "tangerine.png"),
-		APPLE(Color.decode("#F83232"), 100, "apple.png"), ORANGE(Color.decode("#FFEE00"), 130, "orange.png"),
-		PEACH(Color.decode("#FF98A9"), 160, "peach.png"), MELON(Color.decode("#9BFF98"), 190, "melon.png"),
-		WATERMELON(Color.decode("#00A305"), 210, "watermelon.png");
+		APPLE(Color.decode("#F83232"), 110, "apple.png"), ORANGE(Color.decode("#FFEE00"), 170, "orange.png"),
+		PEACH(Color.decode("#FF98A9"), 250, "peach.png"), MELON(Color.decode("#9BFF98"), 350, "melon.png"),
+		WATERMELON(Color.decode("#00A305"), 470, "watermelon.png");
 
 		private Color color;
 		private int size;

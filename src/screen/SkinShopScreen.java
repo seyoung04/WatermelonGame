@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -60,9 +61,12 @@ public class SkinShopScreen extends BaseScreen {
 		add(coinLabel);
 
 		// back 버튼
-		RoundedButton backButton = new RoundedButton(new Color(0, 0, 0, 0), 10, "", Color.WHITE,
+		RoundedButton backButton = new RoundedButton(new Color(255, 222, 178), 10, "", Color.WHITE,
 				new Font("Comic Sans MS", Font.BOLD, 18));
-		backButton.setBounds(420, 22, 64, 64);
+		backButton.setBounds(390, 22, 64, 64);
+		ImageIcon icon = new ImageIcon("src/image/item/back.png");
+		Image scaledImage = icon.getImage().getScaledInstance(54, 54, Image.SCALE_SMOOTH); // 버튼 크기에 맞게
+		backButton.setIcon(new ImageIcon(scaledImage));
 		backButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -86,7 +90,7 @@ public class SkinShopScreen extends BaseScreen {
 
 		// 스크롤 패널 설정
 		scrollPane = new JScrollPane(skinListPanel); // 스킨 목록 패널을 스크롤 가능하게
-		scrollPane.setBounds(30, 120, 430, 550);
+		scrollPane.setBounds(28, 120, 430, 550);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // 세로 스크롤바
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // 가로 스크롤바 숨김
 		scrollPane.setOpaque(false);
@@ -136,7 +140,7 @@ public class SkinShopScreen extends BaseScreen {
 		skinItemPanel.setLayout(null);
 		skinItemPanel.setPreferredSize(new Dimension(400, 160));
 		skinItemPanel.setBackground(new Color(255, 243, 220, 200));
-		skinItemPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1)); // 테두리 색
+		skinItemPanel.setBorder(BorderFactory.createLineBorder(new Color(238, 212, 176), 1)); // 테두리 색
 
 		// 스킨 사진
 		JLabel skinImageLabel = new JLabel();
@@ -156,36 +160,34 @@ public class SkinShopScreen extends BaseScreen {
 
 	// 구매 버튼 문구 설정
 	private void updateButtonStates() {
-		Component[] components = skinListPanel.getComponents();
-		for (Component component : components) {
+		Component[] components = skinListPanel.getComponents(); // 스킨 목록 가져오기
+		for (Component component : components) { // RoundedButton 찾기 위해 component와 subComponent 들르기
 			if (component instanceof JPanel) {
 				JPanel panel = (JPanel) component;
 				for (Component subComponent : panel.getComponents()) {
 					if (subComponent instanceof RoundedButton) {
 						RoundedButton button = (RoundedButton) subComponent;
+						// 패널의 인덱스와 매칭되는 스킨 키 불러오기
 						String skinKey = skins.keySet().toArray(new String[0])[skinListPanel.getComponentZOrder(panel)];
-						SkinData skinData = skins.get(skinKey);
+						SkinData skinData = skins.get(skinKey); // 스킨 키로 스킨 데이터 불러오기
 
-						if (skinData.isOwned()) {
-							if (appliedSkin.equals(skinKey)) {
+						if (skinData.isOwned()) { // 스킨 보유 시
+							if (appliedSkin.equals(skinKey)) { // 적용중일 때
 								button.setText("적용중");
-								button.setBackground(new Color(218, 165, 22)); // 약간 어두운 갈색
-
+								button.setBackground(new Color(218, 165, 22));
 								button.setContentAreaFilled(false); // Look-and-Feel 무시
-								button.setEnabled(false); // 비활성화
-							} else {
+								button.setEnabled(false); // 버튼 비활성화
+							} else { // 적용하고 있지 않을 때
 								button.setText("적용하기");
-								button.setBackground(new Color(198, 155, 93)); // 갈색 계열
-
+								button.setBackground(new Color(198, 155, 93));
 								button.setContentAreaFilled(false);
-								button.setEnabled(true); // 활성화
+								button.setEnabled(true); // 버튼 활성화
 							}
-						} else {
+						} else { // 스킨 미보유 시
 							button.setText(skinData.getPrice() + " 코인");
-							button.setBackground(new Color(245, 190, 60)); // 어두운 노란색
-
+							button.setBackground(new Color(245, 190, 60));
 							button.setContentAreaFilled(false);
-							button.setEnabled(true); // 활성화
+							button.setEnabled(true); // 버튼 활성화
 						}
 					}
 				}
@@ -203,7 +205,7 @@ public class SkinShopScreen extends BaseScreen {
 		if (GameData.getCoins() >= skinData.getPrice()) {
 			yesnoMessage(skinData, "스킨을 구매하겠습니까?");
 		} else {
-			showCustomMessage("코인이 부족합니다!");
+			showCustomMessage("코인이 부족합니다.");
 		}
 	}
 
@@ -212,7 +214,7 @@ public class SkinShopScreen extends BaseScreen {
 		appliedSkin = skin;
 		updateButtonStates();
 		Fruit.refreshImages();
-		showCustomMessage("스킨이 적용되었습니다!");
+		showCustomMessage("스킨이 적용되었습니다.");
 	}
 
 	public static String getAppliedSkin() {
@@ -280,7 +282,7 @@ public class SkinShopScreen extends BaseScreen {
 			skinData.setOwned(true);
 			updateButtonStates();
 			dialog.dispose();
-			showCustomMessage("스킨을 구매했습니다!");
+			showCustomMessage("스킨을 구매했습니다.");
 		});
 		dialog.add(yesButton);
 

@@ -16,7 +16,6 @@ public class Collision {
 		while (hasCollision) {
 			hasCollision = false;
 
-			// 서로 다른 과일끼리 충돌이 있으면 충돌 처리, 종류가 같은 과일이면 합치기
 			for (Falling otherF : fruits) {
 				if (otherF != fallingInstance && !otherF.isMarkedForDeletion()
 						&& !fallingInstance.isMarkedForDeletion()) {
@@ -24,12 +23,9 @@ public class Collision {
 
 					if (overlap > COLLISION_THRESHOLD) {
 						if (fallingInstance.type == otherF.type) {
-							// GameScreen 참조 가져오기
 							GameScreen gameScreen = fallingInstance.getGameScreen();
-
 							mergeFruits(fallingInstance, otherF, fruits);
 
-							// 병합 후 점수와 코인 업데이트
 							if (gameScreen != null) {
 								gameScreen.updateScoreAndCoins(fallingInstance.getType().toString().toLowerCase());
 							}
@@ -111,21 +107,24 @@ public class Collision {
 			fallingInstance.velocityY += ny * impulse;
 			otherF.velocityX -= nx * impulse * sizeRatio;
 			otherF.velocityY -= ny * impulse * sizeRatio;
+
+			double collisionImpact = Math.sqrt(relativeVX * relativeVX + relativeVY * relativeVY);
+			double torque = collisionImpact / Math.max(fallingInstance.diameter, otherF.diameter);
+
+			fallingInstance.angularVelocity += torque * (dy > 0 ? 1 : -1); // 충돌 방향에 따라 회전
+			otherF.angularVelocity -= torque * (dy > 0 ? 1 : -1);
 		}
 	}
 
-	// 과일 합치는 코드
 	private void mergeFruits(Falling fallingInstance, Falling otherF, List<Falling> fruits) {
-		// 충돌한 과일 중 하나라도 삭제되기로 하면 return(합칠 필요 없음)
 		if (fallingInstance.isMarkedForDeletion || otherF.isMarkedForDeletion) {
 			return;
 		}
 
-		// 두 과일의 종류가 같다면
 		if (fallingInstance.type == otherF.type) {
 			double newX = (fallingInstance.getX() + otherF.getX()) / 2;
 			double newY = (fallingInstance.getY() + otherF.getY()) / 2;
-			// 다음 종류의 과일이 존재하면 두 과일을 합쳐 다음 종류의 과일 생성
+
 			if (fallingInstance.type.next() != null) {
 				Fruit.FruitList newType = fallingInstance.type.next();
 				fallingInstance.type = newType;
@@ -136,11 +135,15 @@ public class Collision {
 
 				otherF.markForDeletion();
 
-				// 병합 후 점수 업데이트
-				GameScreen gameScreen = fallingInstance.getGameScreen(); // GameScreen 참조를 직접 가져옴
+				// 점수와 코인 업데이트
+				GameScreen gameScreen = fallingInstance.getGameScreen();
+				if (gameScreen != null) {
+					String fruitType = fallingInstance.type.toString().toLowerCase();
+					gameScreen.updateScoreAndCoins(fruitType);
+				}
 
-				if (gameScreen != null)
-					gameScreen.updateScoreAndCoins(fallingInstance.getType().toString().toLowerCase());
+				fallingInstance.angularVelocity = 0; // 병합 후 회전 속도 초기화
+				fallingInstance.rotationAngle = 0; // 병합 후 회전 각도 초기화
 			}
 		}
 	}

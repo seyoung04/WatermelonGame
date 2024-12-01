@@ -45,27 +45,27 @@ public class LoginScreen extends BaseScreen {
 
 		// 아이디 라벨
 		id = new JLabel("ID");
-		id.setBounds(150, 315, 140, 30);
+		id.setBounds(150, 310, 140, 30);
 		id.setFont(new Font("Comic Sans Ms", Font.BOLD, 25));
 		id.setForeground(new Color(181, 112, 0));
 		add(id);
 
 		// 아이디 입력창
 		idField = new JTextField(20);
-		idField.setBounds(240, 315, 140, 30);
+		idField.setBounds(240, 310, 140, 30);
 		clearTextField(idField);
 		add(idField);
 
 		// 비밀번호 라벨
 		password = new JLabel("Password");
-		password.setBounds(110, 350, 140, 30);
+		password.setBounds(110, 345, 140, 30);
 		password.setFont(new Font("Comic Sans Ms", Font.BOLD, 25));
 		password.setForeground(new Color(181, 112, 0));
 		add(password);
 
 		// 비밀번호 입력창
 		passwordField = new JPasswordField(20);
-		passwordField.setBounds(240, 350, 140, 30);
+		passwordField.setBounds(240, 345, 140, 30);
 		clearTextField(passwordField);
 		add(passwordField);
 

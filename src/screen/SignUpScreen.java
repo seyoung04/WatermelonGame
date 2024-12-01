@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
@@ -83,10 +85,22 @@ public class SignUpScreen extends BaseScreen {
 		clearTextField(passwordCheckField);
 		add(passwordCheckField);
 
+		// back 버튼
+		RoundedButton backButton = new RoundedButton(new Color(255, 172, 62), 10, "Back", Color.WHITE,
+				new Font("Comic Sans MS", Font.BOLD, 26));
+		backButton.setBounds(250, 400, 130, 39);
+		backButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.showScreen("LoginScreen");
+			}
+		});
+		add(backButton);
+
 		// 회원가입 버튼
 		RoundedButton signupButton = new RoundedButton(Color.WHITE, 10, "Sign up", new Color(255, 172, 62),
 				new Font("Comic Sans Ms", Font.BOLD, 26));
-		signupButton.setBounds(180, 400, 130, 39);
+		signupButton.setBounds(110, 400, 130, 39);
 		signupButton.addActionListener(e -> {
 			String id = idField.getText();
 			String password = new String(passwordField.getPassword());

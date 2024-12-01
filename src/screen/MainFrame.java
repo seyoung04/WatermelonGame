@@ -32,7 +32,7 @@ public class MainFrame extends JFrame {
 		addScreen(new SkinShopScreen(this), "SkinShopScreen");
 
 		// 첫 화면을 로그인 화면으로 설정
-		cardLayout.show(getContentPane(), "SkinShopScreen");
+		cardLayout.show(getContentPane(), "GameScreen");
 	}
 
 	private void addScreen(JPanel panel, String name) {

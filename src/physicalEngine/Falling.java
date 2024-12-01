@@ -2,6 +2,7 @@
 package physicalEngine;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.util.List;
 
@@ -16,37 +17,43 @@ public class Falling {
 	private Falling supportingFruit = null; // 과일이 쌓여있을 경우, 지지하는 과일
 	boolean isMarkedForDeletion = false; // 삭제 예정 여부
 	boolean isMerged = false; // 병합 여부
+	double angularVelocity = 0; // 회전 속도
+	double rotationAngle = 0; // 현재 회전 각도
 
 	private GameScreen gameScreen; // GameScreen 참조
 
 	private static final double GRAVITY = 0.4; // 중력
 	private static final double FRICTION = 0.98; // 마찰력
 	private static final double ENERGY_LOSS = 0.5; // 에너지 손실률(반사)
-	private static final int WALL_LEFT = 30;
-	private static final int WALL_RIGHT = 415;
-	private static final int WALL_TOP = 0;
-	private static final int WALL_BOTTOM = 723;
+	private static final int WALL_LEFT = 30; // 왼쪽 벽
+	private static final int WALL_RIGHT = 370;
+	private static final int WALL_BOTTOM = 695;
+	private static final int WALL_TOP = 0; // 상단 벽
 
+	// 추가된 생성자
 	public Falling(int x, Image fruitImage, Fruit.FruitList type) {
 		this.x = x;
-		switch (type) { // y좌표 설정
-		case GRAPE:
-			this.y = 200;
-			break;
-		case TANGERINE:
-			this.y = 180;
-			break;
-		default:
-			this.y = 120;
-			break;
-		}
+		this.y = 200; // 초기 Y 좌표
 		this.fruitImage = fruitImage;
 		this.type = type;
 		this.diameter = type.getSize();
-		// this.gameScreen = gameScreen;
+		this.gameScreen = gameScreen; // GameScreen 참조 저장
 	}
 
-	// 상태 업데이트 (중력과 속도를 이용해 이동 및 충돌 처리)
+	// 수정
+	public Falling(int x, Image fruitImage, Fruit.FruitList type, GameScreen gameScreen) {
+		this.x = x;
+		this.y = 200; // 초기 y 좌표
+		this.fruitImage = fruitImage;
+		this.type = type;
+		this.diameter = type.getSize();
+		this.gameScreen = gameScreen; // GameScreen 참조 저장
+	}
+
+	public GameScreen getGameScreen() {
+		return gameScreen;
+	}
+
 	public void update(List<Falling> fruits) {
 		if (isMarkedForDeletion) {
 			return;
@@ -60,13 +67,19 @@ public class Falling {
 		for (int i = 0; i < 5; i++) { // 정밀 충돌 감지(이동을 5회 나눠서 처리)
 			x += velocityX / 5;
 			y += velocityY / 5;
+
 			Collision collision = new Collision();
 			collision.handleCollisions(fruits, this, prevX, prevY); // 충돌 처리
 			handleWallCollision(); // 벽 충돌 처리
 			ensureInBounds(); // 경계 내부 유지
+
+			// 회전 각도 업데이트
+			rotationAngle += angularVelocity / 5;
+			rotationAngle %= 360; // 각도는 360도를 초과하지 않도록 제한
 		}
 
 		velocityX *= FRICTION; // 마찰 적용
+		angularVelocity *= FRICTION; // 마찰로 회전 속도 감소
 	}
 
 	// 과일 병합 처리
@@ -113,9 +126,15 @@ public class Falling {
 
 	// 과일 이미지 그리기
 	public void draw(Graphics g) {
-		if (!isMarkedForDeletion) { // 삭제 되지 않았다면
-			int fruitSize = type.getSize(); // 과일 크기 계산
-			g.drawImage(fruitImage, (int) x, (int) y, fruitSize, fruitSize, null); // 이미지 그리기
+		if (!isMarkedForDeletion) { // 삭제되지 않았다면
+			if (fruitImage != null) { // 이미지가 존재한다면
+				int fruitSize = type.getSize(); // 과일 크기 계산
+
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.rotate(Math.toRadians(rotationAngle), x + fruitSize / 2, y + fruitSize / 2); // 회전 적용
+				g2d.drawImage(fruitImage, (int) x, (int) y, fruitSize, fruitSize, null); // 이미지 그리기
+				g2d.dispose();
+			}
 		}
 	}
 
@@ -137,10 +156,6 @@ public class Falling {
 
 	public int getDiameter() {
 		return diameter;
-	}
-
-	public GameScreen getGameScreen() {
-		return gameScreen;
 	}
 
 	public boolean isStable() {

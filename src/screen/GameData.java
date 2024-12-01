@@ -3,8 +3,8 @@ package screen;
 
 public class GameData {
 	private static int coins = 3000;
-	private static int highScore = 0;
-	private static int bombNums = 3;
+	private static int highScore = 200;
+	private static int bombNums = 0;
 	private static int passNums = 3;
 
 	// 코인 설정

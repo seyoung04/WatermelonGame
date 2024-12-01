@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -50,9 +52,12 @@ public class ItemShopScreen extends BaseScreen {
 		add(coinLabel);
 
 		// back 버튼
-		RoundedButton backButton = new RoundedButton(new Color(0, 0, 0, 0), 10, "", Color.WHITE,
+		RoundedButton backButton = new RoundedButton(new Color(255, 222, 178), 10, "", Color.WHITE,
 				new Font("Comic Sans MS", Font.BOLD, 18));
-		backButton.setBounds(420, 22, 64, 64);
+		backButton.setBounds(390, 22, 64, 64);
+		ImageIcon icon = new ImageIcon("src/image/item/back.png");
+		Image scaledImage = icon.getImage().getScaledInstance(54, 54, Image.SCALE_SMOOTH); // 버튼 크기에 맞게
+		backButton.setIcon(new ImageIcon(scaledImage));
 		backButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -135,7 +140,7 @@ public class ItemShopScreen extends BaseScreen {
 		buyPassButton.addActionListener(e -> {
 			if (GameData.getCoins() >= 50) {
 				GameData.subtractCoins(50);
-				GameData.addBombs(1);
+				GameData.addPasses(1);
 				refreshData();
 			} else {
 				showCustomMessage("코인이 부족합니다!");

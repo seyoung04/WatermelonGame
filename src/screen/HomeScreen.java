@@ -12,51 +12,37 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
-public class HomeScreen extends JPanel {
-	private JLabel highScore; // 개인 최고 기록
-	private JLabel coin; // 현재 코인 개수
+public class HomeScreen extends BaseScreen {
 	private BufferedImage backgroundImage; // 배경 이미지
-	private MainFrame mainFrame; // MainFrame 인스턴스 추가
-
-	// 버튼의 위치 및 크기
-	private int startButtonX = 110; // 스타트 버튼의 X좌표
-	private int startButtonY = 295; // 스타트 버튼의 Y좌표
-	private int startButtonWidth = 177; // 스타트 버튼의 너비
-	private int startButtonHeight = 67; // 스타트 버튼의 높이
-	private int shopButtonX = 125; // 상점 버튼의 X좌표
-	private int shopButtonY = 365; // 상점 버튼의 Y좌표
-	private int shopButtonWidth = 149; // 상점 버튼의 너비
-	private int shopButtonHeight = 50; // 상점 버튼의 높이
-	private int arcSize = 40; // 모서리 둥글기
+	private JLabel coinLabel; // 코인
+	private JLabel highScoreLabel;// 최고기록 점수
 
 	public HomeScreen(MainFrame mainFrame) {
-		this.mainFrame = mainFrame; // MainFrame 인스턴스를 필드에 저장
 		setLayout(null);
-		setBackground(new Color(222, 184, 135)); // 기본 배경 색상 설정 (이미지가 로드되지 않을 경우)
 
 		// 배경 이미지 설정
 		try {
-			backgroundImage = ImageIO.read(new File("src/image/homescreen.png"));
+			backgroundImage = ImageIO.read(new File("src/image/homeScreen.png"));
 		} catch (IOException e) {
 			e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
 		}
 
-		// high score 레이블
-		highScore = new JLabel("5000");
-		highScore.setBounds(110, 32, 150, 40);
-		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
-		add(highScore);
+		// 코인 레이블
+		coinLabel = new JLabel("" + GameData.getCoins());
+		coinLabel.setBounds(340, 33, 150, 40);
+		coinLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		add(coinLabel);
 
-		// coin 레이블
-		coin = new JLabel("3000");
-		coin.setBounds(340, 32, 150, 40);
-		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
-		add(coin);
+		// 최고기록 레이블
+		highScoreLabel = new JLabel("" + GameData.getHighScore());
+		highScoreLabel.setBounds(110, 33, 150, 40);
+		highScoreLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
+		add(highScoreLabel);
 
 		// Start 버튼
-		RoundedButton startButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
+		RoundedButton startButton = new RoundedButton(new Color(255, 200, 126), 10, "Start", Color.WHITE,
+				new Font("Comic Sans MS", Font.BOLD, 47));
 		startButton.setBounds(140, 373, 215, 75);
 		startButton.addActionListener(new ActionListener() {
 			@Override
@@ -67,7 +53,8 @@ public class HomeScreen extends JPanel {
 		add(startButton);
 
 		// Shop 버튼
-		RoundedButton shopButton = new RoundedButton("", new Color(0, 0, 0, 0), Color.WHITE, 10);
+		RoundedButton shopButton = new RoundedButton(new Color(255, 193, 96), 10, "Shop", Color.WHITE,
+				new Font("Comic Sans MS", Font.BOLD, 33));
 		shopButton.setBounds(158, 465, 180, 55);
 		shopButton.addActionListener(new ActionListener() {
 			@Override
@@ -87,11 +74,9 @@ public class HomeScreen extends JPanel {
 		}
 	}
 
-	public void updateHighScore(int score) {
-		highScore.setText("" + score);
-	}
-
-	public void updateCoins(int coins) {
-		coin.setText("" + coins);
+	@Override
+	public void refreshData() {
+		coinLabel.setText("" + GameData.getCoins());
+		highScoreLabel.setText("" + GameData.getHighScore());
 	}
 }

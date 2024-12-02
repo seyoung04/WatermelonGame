@@ -1,11 +1,7 @@
-//ItemShopScreen.java
+// ItemShopScreen.java
 package screen;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -13,186 +9,171 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
-public class ItemShopScreen extends BaseScreen {
-	private BufferedImage backgroundImage; // 배경 이미지
-	private JLabel coinLabel; // 코인
-	private JLabel bombPrice; // 폭탄 가격
-	private JLabel bombNums; // 폭탄 보유 개수
-	private JLabel passPrice; // 패스 가격
-	private JLabel passNums; // 패스 보유 개수
+import database.Database;
 
-	public ItemShopScreen(MainFrame mainFrame) {
-		setLayout(null);
+public class ItemShopScreen extends BaseScreen implements RefreshableScreen {
+    private BufferedImage backgroundImage;
+    private JLabel coinLabel;
+    private JLabel bombPrice;
+    private JLabel bombNums;
+    private JLabel passPrice;
+    private JLabel passNums;
+    private int userId;
 
-		// 배경 이미지 설정
-		try {
-			backgroundImage = ImageIO.read(new File("src/image/itemShop.png"));
-		} catch (IOException e) {
-			e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
-		}
+    public ItemShopScreen(MainFrame mainFrame, int userId) {
+        setLayout(null);
+        this.userId = userId;
 
-		// Item
-		JLabel iLabel = new JLabel("Item");
-		iLabel.setBounds(200, 30, 150, 40);
-		iLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 40)); // 폰트 설정
-		iLabel.setForeground(Color.WHITE);
-		add(iLabel);
+        // Load background image
+        try {
+            backgroundImage = ImageIO.read(new File("src/image/itemShop.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-		// 코인 레이블
-		coinLabel = new JLabel("" + GameData.getCoins());
-		coinLabel.setBounds(65, 33, 150, 40);
-		coinLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 21)); // 폰트 설정
-		add(coinLabel);
+        // UI 구성 요소 초기화
+        initComponents(mainFrame);
+        refreshUI(); // 화면 초기화
+    }
 
-		// back 버튼
-		RoundedButton backButton = new RoundedButton(new Color(255, 222, 178), 10, "", Color.WHITE,
-				new Font("Comic Sans MS", Font.BOLD, 18));
-		backButton.setBounds(390, 22, 64, 64);
-		ImageIcon icon = new ImageIcon("src/image/item/back.png");
-		Image scaledImage = icon.getImage().getScaledInstance(54, 54, Image.SCALE_SMOOTH); // 버튼 크기에 맞게
-		backButton.setIcon(new ImageIcon(scaledImage));
-		backButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				mainFrame.showScreen("ShopScreen");
-			}
-		});
-		add(backButton);
+    private void initComponents(MainFrame mainFrame) {
+        // Title Label
+        JLabel iLabel = new JLabel("Item");
+        iLabel.setBounds(200, 30, 150, 40);
+        iLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 40));
+        iLabel.setForeground(Color.WHITE);
+        add(iLabel);
 
-		// Bomb 레이블
-		JLabel b1Label = new JLabel("Bomb");
-		b1Label.setBounds(270, 205, 150, 40);
-		b1Label.setFont(new Font("Comic Sans MS", Font.BOLD, 40)); // 폰트 설정
-		b1Label.setForeground(new Color(255, 109, 109));
-		add(b1Label);
+        // Coin Label
+        coinLabel = new JLabel("" + GameData.getCoins());
+        coinLabel.setBounds(65, 33, 150, 40);
+        coinLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 21));
+        add(coinLabel);
 
-		// Bomb 설명 레이블
-		JLabel b2Label = new JLabel("<html>원하는 과일 하나를<br>&nbsp;삭제하는 아이템<html>", SwingConstants.CENTER);
-		b2Label.setBounds(220, 187, 200, 200);
-		b2Label.setFont(new Font("Bazzi", Font.PLAIN, 26)); // 폰트 설정
-		b2Label.setHorizontalAlignment(SwingConstants.CENTER);
-		add(b2Label);
+        // Back Button
+        RoundedButton backButton = new RoundedButton(new Color(255, 222, 178), 10, "", Color.WHITE,
+                new Font("Comic Sans MS", Font.BOLD, 18));
+        backButton.setBounds(390, 22, 64, 64);
+        backButton.setIcon(loadIcon("src/image/item/back.png", 54, 54));
+        backButton.addActionListener(e -> mainFrame.showScreen("ShopScreen"));
+        add(backButton);
 
-		// Bomb 가격 레이블
-		bombPrice = new JLabel("1000");
-		bombPrice.setBounds(265, 322, 150, 40);
-		bombPrice.setFont(new Font("Comic Sans MS", Font.PLAIN, 21)); // 폰트 설정
-		add(bombPrice);
+        // Bomb Section
+        createItemSection("Bomb", "원하는 과일 하나를<br>&nbsp;삭제하는 아이템", 205, 322, bombNums,
+                e -> purchaseItem(1000, true));
 
-		// Bomb 보유 개수 레이블
-		bombNums = new JLabel("보유개수: " + GameData.getBombs());
-		bombNums.setBounds(325, 322, 150, 40);
-		bombNums.setFont(new Font("Bazzi", Font.PLAIN, 21)); // 폰트 설정
-		add(bombNums);
+        // Pass Section
+        createItemSection("Pass", "원하지 않는 과일을<br>&nbsp;패스하는 아이템", 430, 543, passNums,
+                e -> purchaseItem(1000, false));
+    }
 
-		// Bomb 구매 버튼
-		RoundedButton buyBombButton = new RoundedButton(new Color(255, 172, 62), 10, "구매하기", Color.WHITE,
-				new Font("Malgun Gothic", Font.BOLD, 20));
-		buyBombButton.setBounds(80, 325, 120, 38);
-		buyBombButton.addActionListener(e -> {
-			if (GameData.getCoins() >= 50) {
-				GameData.subtractCoins(50);
-				GameData.addBombs(1);
-				refreshData();
-			} else {
-				showCustomMessage("코인이 부족합니다!");
-			}
-		});
-		add(buyBombButton);
+    private JLabel createItemSection(String title, String description, int titleY, int priceY, JLabel j, 
+            ActionListener purchaseListener) {
+// Title
+JLabel titleLabel = new JLabel(title);
+titleLabel.setBounds(270, titleY, 150, 40);
+titleLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 40));
+titleLabel.setForeground(title.equals("Bomb") ? new Color(255, 109, 109) : new Color(98, 147, 255));
+add(titleLabel);
 
-		// Pass 레이블
-		JLabel p1Label = new JLabel("Pass");
-		p1Label.setBounds(275, 430, 150, 40);
-		p1Label.setFont(new Font("Comic Sans MS", Font.BOLD, 40)); // 폰트 설정
-		p1Label.setForeground(new Color(98, 147, 255));
-		add(p1Label);
+// Description
+JLabel descLabel = new JLabel("<html>" + description + "<html>", SwingConstants.CENTER);
+descLabel.setBounds(220, titleY - 18, 200, 200);
+descLabel.setFont(new Font("Bazzi", Font.PLAIN, 26));
+descLabel.setHorizontalAlignment(SwingConstants.CENTER);
+add(descLabel);
 
-		// Pass 설명 레이블
-		JLabel p2Label = new JLabel("<html>원하지 않는 과일을<br>&nbsp;패스하는 아이템<html>", SwingConstants.CENTER);
-		p2Label.setBounds(220, 410, 200, 200);
-		p2Label.setFont(new Font("Bazzi", Font.PLAIN, 26)); // 폰트 설정
-		p2Label.setHorizontalAlignment(SwingConstants.CENTER);
-		add(p2Label);
+// Price
+JLabel priceLabel = new JLabel("1000");
+priceLabel.setBounds(265, priceY, 150, 40);
+priceLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 21));
+add(priceLabel);
 
-		// Pass 가격 레이블
-		passPrice = new JLabel("1000");
-		passPrice.setBounds(265, 543, 150, 40);
-		passPrice.setFont(new Font("Comic Sans MS", Font.PLAIN, 21)); // 폰트 설정
-		add(passPrice);
+// Count
+JLabel countLabel = new JLabel("보유개수: " + (title.equals("Bomb") ? GameData.getBombs() : GameData.getPasses()));
+countLabel.setBounds(325, priceY, 150, 40);
+countLabel.setFont(new Font("Bazzi", Font.PLAIN, 21));
+add(countLabel);
 
-		// Pass 보유 개수 레이블
-		passNums = new JLabel("보유개수: " + GameData.getPasses());
-		passNums.setBounds(325, 543, 150, 40);
-		passNums.setFont(new Font("Bazzi", Font.PLAIN, 21)); // 폰트 설정
-		add(passNums);
+// Purchase Button
+RoundedButton purchaseButton = new RoundedButton(new Color(255, 172, 62), 10, "구매하기", Color.WHITE,
+new Font("Malgun Gothic", Font.BOLD, 20));
+purchaseButton.setBounds(80, priceY + 3, 120, 38);
+purchaseButton.addActionListener(purchaseListener);
+add(purchaseButton);
 
-		// Pass 구매 버튼
-		RoundedButton buyPassButton = new RoundedButton(new Color(255, 172, 62), 10, "구매하기", Color.WHITE,
-				new Font("Malgun Gothic", Font.BOLD, 20));
-		buyPassButton.setBounds(80, 548, 120, 38);
-		buyPassButton.addActionListener(e -> {
-			if (GameData.getCoins() >= 50) {
-				GameData.subtractCoins(50);
-				GameData.addPasses(1);
-				refreshData();
-			} else {
-				showCustomMessage("코인이 부족합니다!");
-			}
-		});
-		add(buyPassButton);
-	}
+return countLabel;
+}
 
-	// 커스텀 메시지 창
-	private void showCustomMessage(String message) {
-		JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "알림", true);
-		dialog.setLayout(null);
-		dialog.setSize(250, 140);
-		dialog.setLocationRelativeTo(this); // 화면 중앙에 표시
+    private ImageIcon loadIcon(String path, int width, int height) {
+        ImageIcon icon = new ImageIcon(path);
+        Image scaledImage = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
+    }
 
-		// 메시지 라벨 배경 패널
-		JPanel messagePanel = new JPanel();
-		messagePanel.setBackground(new Color(255, 230, 204));
-		messagePanel.setBounds(0, 0, 250, 150);
-		messagePanel.setLayout(null);
+    private void purchaseItem(int price, boolean isBomb) {
+        if (GameData.getCoins() >= price) {
+            GameData.subtractCoins(price);
+            if (isBomb) {
+                GameData.addBombs(1);
+            } else {
+                GameData.addPasses(1);
+            }
+            refreshUI();
+        } else {
+            showCustomMessage("코인이 부족합니다!");
+        }
+    }
 
-		// 메시지 라벨
-		JLabel messageLabel = new JLabel(message, SwingConstants.CENTER);
-		messageLabel.setFont(new Font("Malgun Gothic", Font.BOLD, 20));
-		messageLabel.setForeground(Color.BLACK);
-		messageLabel.setBounds(0, 0, 240, 70);
-		dialog.add(messageLabel);
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (backgroundImage != null) {
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
+    }
 
-		// 확인 버튼
-		RoundedButton confirmButton = new RoundedButton(new Color(255, 172, 62), 10, "확인", Color.WHITE,
-				new Font("Malgun Gothic", Font.BOLD, 15));
-		confirmButton.setBounds(70, 65, 100, 30);
-		confirmButton.addActionListener(e -> dialog.dispose());
-		dialog.add(confirmButton);
+    @Override
+    public void refreshUI() {
+        if (userId <= 0) {
+            System.err.println("Invalid userId: " + userId);
+            return;
+        }
 
-		dialog.add(messagePanel);
-		dialog.setVisible(true);
-	}
+        coinLabel.setText("" + GameData.getCoins());
+        bombNums.setText("보유개수: " + GameData.getBombs());
+        passNums.setText("보유개수: " + GameData.getPasses());
+    }
 
-	@Override
-	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		// 배경 이미지 그리기
-		if (backgroundImage != null) {
-			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-		}
-	}
+    private void showCustomMessage(String message) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "알림", true);
+        dialog.setLayout(null);
+        dialog.setSize(250, 140);
+        dialog.setLocationRelativeTo(this);
+
+        JLabel messageLabel = new JLabel(message, SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Malgun Gothic", Font.BOLD, 20));
+        messageLabel.setBounds(0, 20, 250, 30);
+
+        RoundedButton confirmButton = new RoundedButton(new Color(255, 172, 62), 10, "확인", Color.WHITE,
+                new Font("Malgun Gothic", Font.BOLD, 15));
+        confirmButton.setBounds(75, 70, 100, 30);
+        confirmButton.addActionListener(e -> dialog.dispose());
+
+        dialog.add(messageLabel);
+        dialog.add(confirmButton);
+        dialog.setVisible(true);
+    }
 
 	@Override
 	public void refreshData() {
-		coinLabel.setText("" + GameData.getCoins());
-		bombNums.setText("보유개수: " + GameData.getBombs());
-		passNums.setText("보유개수: " + GameData.getPasses());
+		// TODO Auto-generated method stub
+		
 	}
+	public void setUserId(int userId) {
+        this.userId = userId;
+        refreshUI(); 
+    }
 }

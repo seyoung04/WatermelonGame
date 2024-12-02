@@ -15,14 +15,21 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
-public class ShopScreen extends BaseScreen {
+import database.Database;
+
+public class ShopScreen extends BaseScreen implements RefreshableScreen{
 	private BufferedImage backgroundImage; // 배경 이미지
 	private MainFrame mainFrame;
 	private JLabel coinLabel; // 코인
+	private int userId;
+	private int coins;
 
-	public ShopScreen(MainFrame mainFrame) {
+
+	public ShopScreen(MainFrame mainFrame, int userId) {
 		this.mainFrame = mainFrame;
 		setLayout(null);
+        this.userId = userId; // userId 저장
+
 
 		// 배경 이미지 설정
 		try {
@@ -85,9 +92,28 @@ public class ShopScreen extends BaseScreen {
 			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 		}
 	}
+	public void refreshUI() {
+	    if (userId <= 0) {
+	        System.err.println("Invalid userId home: " + userId);
+	        return;
+	    }
+	    
+	    String[] userDetails = Database.getUserDetails(userId);
 
+	    if (userDetails != null && userDetails.length > 2) {	        
+	    	coinLabel.setText(userDetails[2]); // Coins
+	        coins = Integer.parseInt(userDetails[2]);
+	    } else {
+	        System.err.println("User details not found or incomplete for userId: " + userId);
+	        coinLabel.setText("0"); 
+	    }
+	}
 	@Override
 	public void refreshData() {
 		coinLabel.setText("" + GameData.getCoins());
 	}
+	public void setUserId(int userId) {
+        this.userId = userId;
+        refreshUI(); 
+    }
 }

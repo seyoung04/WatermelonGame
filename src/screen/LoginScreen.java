@@ -1,29 +1,36 @@
-//LoginScreen.java
 package screen;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import database.Database;
 import database.Login;
+import database.SessionManager;
 
-public class LoginScreen extends BaseScreen {
+public class LoginScreen extends JPanel   implements RefreshableScreen {
 	private BufferedImage backgroundImage; // 배경 이미지
 	private MainFrame mainFrame;
 	private JLabel id; // 아이디 라벨
@@ -31,81 +38,102 @@ public class LoginScreen extends BaseScreen {
 	private JTextField idField; // 아이디 입력창
 	private JPasswordField passwordField; // 비밀번호 입력창
 
+
 	public LoginScreen(MainFrame mainFrame) {
 		this.mainFrame = mainFrame;
 		setLayout(null);
 		setBounds(0, 0, 500, 750);
 
+
 		/// 배경 이미지 설정
-		try {
-			backgroundImage = ImageIO.read(new File("src/image/loginScreen.png"));
-		} catch (IOException e) {
-			e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
-		}
+				try {
+					backgroundImage = ImageIO.read(new File("src/image/loginScreen.png"));
+				} catch (IOException e) {
+					e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
+				}
 
-		// 아이디 라벨
-		id = new JLabel("ID");
-		id.setBounds(150, 310, 140, 30);
-		id.setFont(new Font("Comic Sans Ms", Font.BOLD, 25));
-		id.setForeground(new Color(181, 112, 0));
-		add(id);
+				// 아이디 라벨
+				id = new JLabel("ID");
+				id.setBounds(150, 310, 140, 30);
+				id.setFont(new Font("Comic Sans Ms", Font.BOLD, 25));
+				id.setForeground(new Color(181, 112, 0));
+				add(id);
 
-		// 아이디 입력창
-		idField = new JTextField(20);
-		idField.setBounds(240, 310, 140, 30);
-		clearTextField(idField);
-		add(idField);
+				// 아이디 입력창
+				idField = new JTextField(20);
+				idField.setBounds(240, 310, 140, 30);
+				clearTextField(idField);
+				add(idField);
 
-		// 비밀번호 라벨
-		password = new JLabel("Password");
-		password.setBounds(110, 345, 140, 30);
-		password.setFont(new Font("Comic Sans Ms", Font.BOLD, 25));
-		password.setForeground(new Color(181, 112, 0));
-		add(password);
+				// 비밀번호 라벨
+				password = new JLabel("Password");
+				password.setBounds(110, 345, 140, 30);
+				password.setFont(new Font("Comic Sans Ms", Font.BOLD, 25));
+				password.setForeground(new Color(181, 112, 0));
+				add(password);
 
-		// 비밀번호 입력창
-		passwordField = new JPasswordField(20);
-		passwordField.setBounds(240, 345, 140, 30);
-		clearTextField(passwordField);
-		add(passwordField);
+				// 비밀번호 입력창
+				passwordField = new JPasswordField(20);
+				passwordField.setBounds(240, 345, 140, 30);
+				clearTextField(passwordField);
+				add(passwordField);
 
-		// 비밀번호 필드 이벤트
-		passwordField.addActionListener(e -> login());
+				RoundedButton loginButton = new RoundedButton(new Color(255, 172, 62), 10, "Login", Color.WHITE,
+						new Font("Comic Sans Ms", Font.BOLD, 20));
+				loginButton.setBounds(145, 387, 83, 29);
 
-		// 로그인 버튼
-		RoundedButton loginButton = new RoundedButton(new Color(255, 172, 62), 10, "Login", Color.WHITE,
-				new Font("Comic Sans Ms", Font.BOLD, 20));
-		loginButton.setBounds(145, 387, 83, 29);
-		loginButton.addActionListener(e -> login());
-		add(loginButton);
+				// 로그인 버튼 이벤트
+				passwordField.addActionListener(e -> login());
 
-		// 회원가입 버튼
-		RoundedButton signupButton = new RoundedButton(Color.WHITE, 10, "Sign up", new Color(255, 172, 62),
-				new Font("Comic Sans Ms", Font.BOLD, 20));
-		signupButton.setBounds(250, 387, 104, 29);
-		signupButton.addActionListener(e -> {
-			mainFrame.showScreen("SignUpScreen");
-		});
-		add(signupButton);
-	}
+				loginButton.addActionListener(e -> {
+				    String id = idField.getText();
+				    String password = new String(passwordField.getPassword());
 
-	// 로그인 메서드
-	private void login() {
-		String id = idField.getText();
-		String password = new String(passwordField.getPassword());
+				    if (password.isEmpty() || id.isEmpty()) {
+				        JOptionPane.showMessageDialog(null, "모든 필드를 입력해주세요.");
+				        return;
+				    }
 
-		if (id.isEmpty() || password.isEmpty()) {
-			showCustomMessage("모든 필드를 입력해주세요.");
-			return;
-		}
+				    if (Login.login(id, password)) {
+				        JOptionPane.showMessageDialog(null, "로그인 성공!");
+				        int userId = SessionManager.getInstance().getUserId(); 
+				        mainFrame.loginSuccess(userId); 
+				        mainFrame.showScreen("HomeScreen");
+				    } else {
+				        JOptionPane.showMessageDialog(null, "아이디 또는 비밀번호가 일치하지 않습니다.");
+				    }
+				});
+				add(loginButton);
 
-		if (Login.login(id, password)) {
-			showCustomMessage("로그인 성공!");
-			mainFrame.showScreen("HomeScreen");
-		} else {
-			showCustomMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
-		}
-	}
+				RoundedButton signupButton = new RoundedButton(Color.WHITE, 10, "Sign up", new Color(255, 172, 62),
+						new Font("Comic Sans Ms", Font.BOLD, 20));
+				signupButton.setBounds(250, 387, 104, 29);
+				signupButton.addActionListener(e -> {
+					mainFrame.showScreen("SignUpScreen");
+				});
+				// 회원가입 버튼 이벤트
+			
+				add(signupButton);
+			}
+    private void login() {
+        String id = idField.getText();
+        String password = new String(passwordField.getPassword());
+
+        if (id.isEmpty() || password.isEmpty()) {
+            showCustomMessage("모든 필드를 입력해주세요.");
+            return;
+        }
+
+        if (Login.login(id, password)) {
+            showCustomMessage("로그인 성공!");
+            int userId = SessionManager.getInstance().getUserId(); 
+            mainFrame.loginSuccess(userId); 
+            mainFrame.showScreen("HomeScreen");
+        } else {
+            showCustomMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
 
 	// 투명 텍스트 필드 설정
 	private void clearTextField(JTextField textField) {
@@ -128,8 +156,6 @@ public class LoginScreen extends BaseScreen {
 			}
 		});
 	}
-
-	// 커스텀 메시지 창
 	private void showCustomMessage(String message) {
 		JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "알림", true);
 		dialog.setLayout(null);
@@ -160,6 +186,7 @@ public class LoginScreen extends BaseScreen {
 		dialog.setVisible(true);
 	}
 
+
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -169,7 +196,11 @@ public class LoginScreen extends BaseScreen {
 		}
 	}
 
-	@Override
+	
 	public void refreshData() {
 	}
+	@Override
+	public void refreshUI() {		
+	}
+	
 }

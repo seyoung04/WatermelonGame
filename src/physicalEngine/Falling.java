@@ -185,4 +185,10 @@ public class Falling {
 	public Fruit.FruitList getType() {
 		return this.type;
 	}
+	   public double getVelocityY() {
+			return velocityY;
+		}
+	    public boolean isMoving() {
+			return Math.abs(velocityY) > 1;
+		}
 }

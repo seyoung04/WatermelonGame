@@ -40,8 +40,9 @@ import database.Database;
 import database.SessionManager;
 import physicalEngine.Falling;
 import physicalEngine.Fruit;
+import physicalEngine.HighScore;
 
-public class GameScreen extends BaseScreen {
+public class GameScreen extends BaseScreen implements RefreshableScreen{
 	private BufferedImage backgroundImage; // 배경 이미지
 	private List<Falling> fruits = new ArrayList<>();
 	private int userId;
@@ -57,6 +58,8 @@ public class GameScreen extends BaseScreen {
 	private JLabel nextFruitLabel; // next 과일
 	private Fruit currentPreviewFruit = new Fruit();
 	private Fruit nextFruit = new Fruit();
+    private int coinCount = 0; 
+
 
 	private Point mousePosition = new Point(0, 200);
 	private MainFrame mainFrame;
@@ -70,10 +73,13 @@ public class GameScreen extends BaseScreen {
 	private List<Point> evolutionPositions = new ArrayList<>(); // 과일 위치 리스트
 	private Map<String, Integer> fruitCoinValues; // 과일에 대한 코인 값 저장
 
-	public GameScreen(MainFrame mainFrame) {
-		initializeGameScreen();
+	public GameScreen(MainFrame mainFrame, int userId) {
+        this.userId = userId;
 		this.mainFrame = mainFrame;
 		updateUserId();
+        this.coinCount = Database.getUsercoin(userId); 
+		GameData.initialize(userId);
+
 
 		setLayout(null);
 		setBackground(new Color(222, 184, 135));
@@ -124,12 +130,6 @@ public class GameScreen extends BaseScreen {
 		// 합성순서 이미지
 		initializeEvolutionImages();
 
-		// SCORE 레이블
-		JLabel scoreLabel = new JLabel("SCORE");
-		scoreLabel.setBounds(206, 12, 100, 50);
-		scoreLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 22));
-		add(scoreLabel);
-
 		// 현재 점수 레이블
 		scoreLabel = new JLabel("0");
 		scoreLabel.setBounds(210, 38, 100, 50);
@@ -137,7 +137,7 @@ public class GameScreen extends BaseScreen {
 		add(scoreLabel);
 
 		// 최고기록 레이블
-		highScoreLabel = new JLabel("" + GameData.getHighScore());
+		highScoreLabel = new JLabel("" + HighScore.loadHighScore(userId));
 		highScoreLabel.setBounds(220, 100, 100, 40);
 		highScoreLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 17));
 		add(highScoreLabel);
@@ -212,8 +212,23 @@ public class GameScreen extends BaseScreen {
 		fruitCoinValues.put("peach", 250);
 		fruitCoinValues.put("melon", 350);
 		fruitCoinValues.put("watermelon", 470);
+		refreshUI();
 	}
-
+	public void initializeGameScreen() {
+	    this.userId = SessionManager.getInstance().getUserId();
+	    if (userId != -1) {
+	        int[] userData = Database.getUserScoreAndCoins(userId);
+	        
+	        highScore = userData[0];
+	        int currentCoins = userData[2];  // 현재 코인 값
+	        
+	        highScoreLabel.setText("" + highScore);
+	        coinLabel.setText("" + currentCoins);  // GameData 대신 직접 데이터베이스 값 사용
+	        
+	        score = 0;
+	        scoreLabel.setText("0");
+	    }
+	}
 	// 게임 종료 선을 넘는지에 대한 여부
 	private boolean checkGameOver() {
 		for (Falling fruit : fruits) {
@@ -317,66 +332,62 @@ public class GameScreen extends BaseScreen {
 		this.userId = SessionManager.getInstance().getUserId();
 	}
 
-	public void initializeGameScreen() {
-		this.userId = SessionManager.getInstance().getUserId();
-		System.out.println("initializeGameScreen에서 userId: " + userId);
 
-		if (userId != -1) {
-			int[] userData = Database.getUserScoreAndCoins(userId);
-
-			// 데이터베이스에서 가져온 값을 로그로 출력
-			System.out
-					.println("Database에서 가져온 userData: high_score = " + userData[0] + ", game_money = " + userData[1]);
-
-			// 데이터베이스에서 가져온 최고 점수와 코인을 화면에 표시
-			highScore = userData[0];
-			coin = userData[1];
-			highScoreLabel.setText("" + highScore);
-			coinLabel.setText("" + coin);
-
-			score = 0; // 점수는 0으로 초기화
-			scoreLabel.setText("" + score);
-		} else {
-			System.err.println("유효하지 않은 userId: " + userId);
-		}
-	}
-
-	// 합쳐질 때 과일 업데이트
+	//과일 업데이트
 	private void update() {
-		for (int i = 0; i < fruits.size(); i++) {
-			Falling fruit = fruits.get(i);
-			fruit.update(fruits);
+        for (Falling fruit : fruits) {
+            fruit.update(fruits);
 
-			if (fruit.isMarkedForDeletion()) {
-				// 삭제된 과일은 더 이상 리스트에 포함되지 않도록 처리
-				fruits.remove(i);
-				i--; // 리스트 인덱스 조정
-			}
+            if (fruit.isMerged() && !fruit.isMarkedForDeletion()) {
+                String fruitType = fruit.getType().toString().toLowerCase();
+                updateScoreAndCoins(fruitType);
+            }
+        }
+        checkGameOverCondition();
 
-			if (fruit.isMerged() && !fruit.isMarkedForDeletion()) {
-				String fruitType = fruit.getType().toString().toLowerCase();
-				updateScoreAndCoins(fruitType); // 현재 점수와 코인 업데이트
-			}
-		}
-	}
-
+    }
 	// 현재 점수와 코인 업데이트
 	public void updateScoreAndCoins(String fruitType) {
-		int currentUserId = SessionManager.getInstance().getUserId();
-		int pointIncrement = getPointIncrement(fruitType);
-		score += pointIncrement;
-		coin += pointIncrement / 2;
-		scoreLabel.setText("" + score);
-		coinLabel.setText("" + coin);
+        int pointIncrement = getPointIncrement(fruitType);
+        score += pointIncrement;
 
-		Database.updateUserScoreAndCoins(currentUserId, score, coin);
+        // 하이스코어 업데이트
+        if (score > HighScore.loadHighScore(userId)) {
+            HighScore.setHighScore(userId, score);
+            highScoreLabel.setText("" + score);
+        }
 
-		if (score > highScore) { // 최고기록 갱신
-			highScore = score;
-			highScoreLabel.setText("" + highScore);
-		}
+        // 코인 업데이트
+        int newCoins = pointIncrement / 10;
+        coinCount += newCoins;
+
+        // 데이터베이스에 점수 및 코인 저장
+        Database.updateUserScoreAndCoins(userId, score, coinCount);
+
+        // UI 업데이트
+        coinLabel.setText("" + coinCount);
+        scoreLabel.setText("" + score);
+        repaint();
+    }
+
+    
+	public int getScore() {
+		return score;
 	}
 
+	public void setUserId(int userId) {
+        this.userId = userId;
+        refreshUI();
+    }
+
+	public void updateHighScore(int score) {
+	    // UI 업데이트를 위해 하이스코어 갱신
+	    if (score > HighScore.getHighScore()) {
+	        HighScore.setHighScore(userId, score); 
+	        highScoreLabel.setText(String.valueOf(score)); 
+	    }
+	}
+    
 	public int getPointIncrement(String fruitType) {
 		return fruitCoinValues.getOrDefault(fruitType, 0);
 	}
@@ -544,10 +555,33 @@ public class GameScreen extends BaseScreen {
 
 	@Override
 	public void refreshData() {
+		GameData.initialize(userId);
 		coinLabel.setText("" + GameData.getCoins());
 		scoreLabel.setText("" + score);
 		highScoreLabel.setText("" + GameData.getHighScore());
 		bombButton.setText("" + GameData.getBombs());
 		passButton.setText("" + GameData.getPasses());
 	}
-}
+
+	public void refreshUI() {
+	    if (userId <= 0) {
+	        System.err.println("Invalid userId home: " + userId);
+	        return;
+	    }
+	    String[] userDetails = Database.getUserDetails(userId);
+
+	    if (userDetails != null) {
+	        // 하이스코어만 데이터베이스 값으로 설정
+	        int highScoreValue = Integer.parseInt(userDetails[1]);
+	        highScoreLabel.setText(String.valueOf(highScoreValue));
+	        
+	        // 코인 업데이트
+	        coinLabel.setText(userDetails[2]);
+            coinCount = Integer.parseInt(userDetails[2]);
+
+	        // scoreLabel 업데이트
+	        scoreLabel.setText(String.valueOf(score));
+	    } else {
+	        System.err.println("User details not found for userId: " + userId);
+	    }
+	}}

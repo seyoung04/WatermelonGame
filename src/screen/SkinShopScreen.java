@@ -27,6 +27,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import database.Database;
 import physicalEngine.Fruit;
 
 public class SkinShopScreen extends BaseScreen {
@@ -35,11 +36,13 @@ public class SkinShopScreen extends BaseScreen {
 	private JScrollPane scrollPane; // 스크롤
 	private JPanel skinListPanel; // 스크롤 가능한 패널
 	private static String appliedSkin = "default"; // 현재 적용돼있는 스킨. 기본값은 default
+    private  int userId = -1; 
 	private final Map<String, SkinData> skins = new LinkedHashMap<>(); // 스킨 데이터 관리
+	private static final String IMAGE_PATH = "src/image/";
+
 
 	public SkinShopScreen(MainFrame mainFrame) {
 		setLayout(null);
-
 		// 배경 이미지 설정
 		try {
 			backgroundImage = ImageIO.read(new File("src/image/skinShop.png"));
@@ -145,7 +148,7 @@ public class SkinShopScreen extends BaseScreen {
 		// 스킨 사진
 		JLabel skinImageLabel = new JLabel();
 		skinImageLabel.setBounds(10, 10, 280, 140);
-		skinImageLabel.setIcon(new ImageIcon("src/image/" + skinKey + "/set.png"));
+		skinImageLabel.setIcon(new ImageIcon(IMAGE_PATH + skinKey + "/set.png"));
 		skinItemPanel.add(skinImageLabel);
 
 		// 구매 버튼
@@ -160,40 +163,38 @@ public class SkinShopScreen extends BaseScreen {
 
 	// 구매 버튼 문구 설정
 	private void updateButtonStates() {
-		Component[] components = skinListPanel.getComponents(); // 스킨 목록 가져오기
-		for (Component component : components) { // RoundedButton 찾기 위해 component와 subComponent 들르기
-			if (component instanceof JPanel) {
-				JPanel panel = (JPanel) component;
-				for (Component subComponent : panel.getComponents()) {
-					if (subComponent instanceof RoundedButton) {
-						RoundedButton button = (RoundedButton) subComponent;
-						// 패널의 인덱스와 매칭되는 스킨 키 불러오기
-						String skinKey = skins.keySet().toArray(new String[0])[skinListPanel.getComponentZOrder(panel)];
-						SkinData skinData = skins.get(skinKey); // 스킨 키로 스킨 데이터 불러오기
+	    int index = 0;
+	    for (Component component : skinListPanel.getComponents()) {
+	        if (component instanceof JPanel) {
+	            JPanel panel = (JPanel) component;
+	            String skinKey = skins.keySet().toArray(new String[0])[index++];
+	            SkinData skinData = skins.get(skinKey);
 
-						if (skinData.isOwned()) { // 스킨 보유 시
-							if (appliedSkin.equals(skinKey)) { // 적용중일 때
-								button.setText("적용중");
-								button.setBackground(new Color(218, 165, 22));
-								button.setContentAreaFilled(false); // Look-and-Feel 무시
-								button.setEnabled(false); // 버튼 비활성화
-							} else { // 적용하고 있지 않을 때
-								button.setText("적용하기");
-								button.setBackground(new Color(198, 155, 93));
-								button.setContentAreaFilled(false);
-								button.setEnabled(true); // 버튼 활성화
-							}
-						} else { // 스킨 미보유 시
-							button.setText(skinData.getPrice() + " 코인");
-							button.setBackground(new Color(245, 190, 60));
-							button.setContentAreaFilled(false);
-							button.setEnabled(true); // 버튼 활성화
-						}
-					}
-				}
-			}
-		}
+	            for (Component subComponent : panel.getComponents()) {
+	                if (subComponent instanceof RoundedButton) {
+	                    RoundedButton button = (RoundedButton) subComponent;
+
+	                    if (skinData.isOwned()) {
+	                        if (appliedSkin.equals(skinKey)) {
+	                            button.setText("적용중");
+	                            button.setBackground(new Color(218, 165, 22));
+	                            button.setEnabled(false);
+	                        } else {
+	                            button.setText("적용하기");
+	                            button.setBackground(new Color(198, 155, 93));
+	                            button.setEnabled(true);
+	                        }
+	                    } else {
+	                        button.setText(skinData.getPrice() + " 코인");
+	                        button.setBackground(new Color(245, 190, 60));
+	                        button.setEnabled(true);
+	                    }
+	                }
+	            }
+	        }
+	    }
 	}
+
 
 	// 구매버튼 이벤트
 	private void handleSkinAction(String skinKey, SkinData skinData, RoundedButton button) {
@@ -311,4 +312,32 @@ public class SkinShopScreen extends BaseScreen {
 		coinLabel.setText("" + GameData.getCoins());
 		updateButtonStates();
 	}
+	public void setUserId(int userId) {
+        this.userId = userId;
+        refreshUI();  
+    }
+	    public void refreshUI() {
+	        if (userId <= 0) {
+	            System.err.println("Invalid userId: " + userId);
+	            return;
+	        }
+	        String[] userDetails = Database.getUserDetails(userId);
+
+	        if (userDetails != null) {
+	            coinLabel.setText(userDetails[2]); 
+	            // 스킨 데이터 갱신
+	            for (Map.Entry<String, SkinData> entry : skins.entrySet()) {
+	                String skinKey = entry.getKey();
+	                SkinData skinData = Database.getSkin(skinKey);
+	                if (skinData != null) {
+	                    skins.put(skinKey, skinData);
+	                }
+	            }
+
+	            // 버튼 상태 갱신
+	            updateButtonStates();
+	        } else {
+	            System.err.println("User details not found for userId: " + userId);
+	        }
+	    }
 }

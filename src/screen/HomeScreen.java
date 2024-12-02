@@ -9,36 +9,57 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
-public class HomeScreen extends BaseScreen {
-	private BufferedImage backgroundImage; // 배경 이미지
-	private JLabel coinLabel; // 코인
-	private JLabel highScoreLabel;// 최고기록 점수
+import database.Database;
+import database.SessionManager;
+import physicalEngine.Coin;
+import physicalEngine.Falling;
+import physicalEngine.HighScore;
+
+public class HomeScreen extends JPanel implements RefreshableScreen{
+	private JLabel highScore; 
+	private JLabel coin; 
+	private BufferedImage backgroundImage;
+    private int currentUserId;
+
+
+	List<Falling> fruits;
+	private int userId;
+
+
+	// 버튼의 위치 및 크기
 
 	public HomeScreen(MainFrame mainFrame) {
 		setLayout(null);
+		setBackground(new Color(222, 184, 135)); 
+		this.currentUserId=0;
 
 		// 배경 이미지 설정
 		try {
-			backgroundImage = ImageIO.read(new File("src/image/homeScreen.png"));
+			backgroundImage = ImageIO.read(new File("src/image/homescreen.png"));
 		} catch (IOException e) {
-			e.printStackTrace(); // 이미지 로드 실패 시 에러 메시지 출력
+			e.printStackTrace(); 
 		}
 
-		// 코인 레이블
-		coinLabel = new JLabel("" + GameData.getCoins());
-		coinLabel.setBounds(340, 33, 150, 40);
-		coinLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
-		add(coinLabel);
+		// high score 레이블
+		highScore = new JLabel("0");
+		highScore.setBounds(100, 32, 105, 40);
+		highScore.setFont(new Font("Comic Sans MS", Font.BOLD, 23)); 
+		highScore.setHorizontalAlignment(SwingConstants.RIGHT);
+		add(highScore);
 
-		// 최고기록 레이블
-		highScoreLabel = new JLabel("" + GameData.getHighScore());
-		highScoreLabel.setBounds(110, 33, 150, 40);
-		highScoreLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 27)); // 폰트 설정
-		add(highScoreLabel);
+
+		// coin 레이블
+		coin = new JLabel("0");
+		coin.setBounds(340, 32, 150, 40);
+		coin.setFont(new Font("Comic Sans MS", Font.BOLD, 23)); // 폰트 설정
+		add(coin);
 
 		// Start 버튼
 		RoundedButton startButton = new RoundedButton(new Color(255, 200, 126), 10, "Start", Color.WHITE,
@@ -63,20 +84,44 @@ public class HomeScreen extends BaseScreen {
 			}
 		});
 		add(shopButton);
-	}
+	    refreshUI();
 
+	}
+	
+	
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		// 배경 이미지 그리기
 		if (backgroundImage != null) {
 			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 		}
 	}
+	
 
-	@Override
-	public void refreshData() {
-		coinLabel.setText("" + GameData.getCoins());
-		highScoreLabel.setText("" + GameData.getHighScore());
-	}
+
+	 public void loginSuccess(int userId) {
+	        this.currentUserId = SessionManager.getInstance().getUserId();
+	        refreshUI();
+	    }
+
+	    @Override
+	    public void refreshUI() {
+	        if (currentUserId <= 0) {
+	            return;
+	        }
+	        String[] userDetails = Database.getUserDetails(currentUserId);
+	        if (userDetails != null) {
+	            highScore.setText(userDetails[1]);
+	            coin.setText(userDetails[2]);
+	        } else {
+	            System.err.println("User details not found for userId: " + currentUserId);
+	        }
+	    }
+	    
+	    public void setUserId(int userId) {
+	        this.currentUserId = userId;
+	        refreshUI(); 
+	    }
+
+
 }
